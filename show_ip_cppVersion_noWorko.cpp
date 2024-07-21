@@ -10,7 +10,7 @@
 using namespace std;
 
 int main(int argc, char *argv[]) {
-    struct addrinfo objA, *objAresults, *objAptr;
+    addrinfo objA, *objAresults, *objAptr;
    
     int status;
     
