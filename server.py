@@ -51,7 +51,7 @@ while True:
         print(f"Got connection from {clientAddress}.")
     
     #Send data over the socket. 
-    msg = "Thank you for the connection!"
+    msg = "Message received!"
     try:
         connectedSocket.send(msg.encode())
     except:
