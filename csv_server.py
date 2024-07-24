@@ -1,4 +1,5 @@
 import socket
+import time
 
 """
 Ask the OS for a socket.
@@ -17,9 +18,9 @@ Note that nothing is connected yet - just setting things up.
 """
 try:
     sObj.bind(('127.0.0.1', port))
-except:
+except Exception as error:
     print(f"Error binding socket to port.")
-    #print(sObj.gaierror()) #This line might be wrong.
+    #print(sObj.gaierror()) 
     exit()
 else:
     print(f"Socket bound to port: {port}.")
