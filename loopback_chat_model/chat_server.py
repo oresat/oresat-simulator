@@ -1,5 +1,7 @@
 import socket
 import time
+import termios
+import sys
 
 """
 Ask the OS for a socket.
@@ -57,7 +59,7 @@ while True:
         
         if msg.upper == "END":
             connectedSocket.close()
-            break
+            exit
 
         try:
             connectedSocket.send(msg.encode())
@@ -68,8 +70,4 @@ while True:
         else:
             print("Message sent!")
         
-    
     break
-
-
-

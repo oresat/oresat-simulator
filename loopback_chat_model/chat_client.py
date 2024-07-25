@@ -24,7 +24,7 @@ while True:
     
     data = sObj.recv(4096) 
     print(data.decode())
-    
-    #sObj.close()
-    
-    #break
+        
+    if 3 == 2: #if server disconnects, then we should too
+        sObj.close()
+        break    
