@@ -52,20 +52,24 @@ while True:
         print(f"Got connection from {clientAddress}.")
     
     #Send data over the socket. 
-    msg = "Message received!"
-    try:
-        connectedSocket.send(msg.encode())
-    except:
-        print("Error sending.")
-        #print(connectedSocket.gaierror()) #Maybe?
-        exit()
-    else:
-        print("Message sent!")
-    
-    connectedSocket.close()
+    while True:
+        msg = input("Enter message: ")
+        
+        if msg.upper == "END":
+            connectedSocket.close()
+            break
+
+        try:
+            connectedSocket.send(msg.encode())
+        except:
+            print("Error sending.")
+            #print(connectedSocket.gaierror()) #Maybe?
+            exit()
+        else:
+            print("Message sent!")
+        
     
     break
-
 
 
 

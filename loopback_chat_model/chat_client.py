@@ -24,7 +24,7 @@ while True:
     
     data = sObj.recv(4096) 
     print(data.decode())
-
-    sObj.close()
     
-    break
+    #sObj.close()
+    
+    #break
