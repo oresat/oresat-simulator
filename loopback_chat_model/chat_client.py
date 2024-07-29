@@ -23,8 +23,10 @@ while True:
         print("Connection successful.\n")
     
     data = sObj.recv(4096) 
-    print(data.decode())
-        
-    if 3 == 2: #if server disconnects, then we should too
+    toPrint = data.decode()
+    print(toPrint)
+    if toPrint == "END":
         sObj.close()
-        break    
+        break        
+
+
