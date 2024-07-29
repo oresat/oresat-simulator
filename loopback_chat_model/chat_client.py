@@ -14,11 +14,18 @@ port = 16327
 Connect to an IP address on a specific port.
 Connection will fail if there is no server listening on said port.
 """
+
+"""Tracks failed connections."""
+counter = int(0)
+
 while True:
     try:
         sObj.connect(('127.0.0.1', port))
     except:
         print("Problem connecting.\n")
+        counter += 1;
+        if counter > 2:
+            exit()
     else:
         print("Connection successful.\n")
     

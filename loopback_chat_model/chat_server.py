@@ -1,6 +1,6 @@
 import socket
 import time
-import termios
+import tty
 import sys
 
 """

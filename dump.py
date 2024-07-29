@@ -1,7 +1,10 @@
+import sys
+import tty
 
+tty.setcbreak(sys.stdin)
 
 while True:
-    msg = input("Enter text: ")
-    if msg  == "END":
-        print("Ended.")
-        break
+    print(sys.stdin.read(1), end="\r\n")
+
+
+
