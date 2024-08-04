@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import serial
 import socket
 
@@ -20,17 +21,16 @@ Bind the socket to our port.
 Note that nothing is connected yet - just setting things up.
 """
 sock.bind(('127.0.0.1', port))
-
 sock.listen()
-    
 cSock, cAddr = sock.accept()
 
-data = cSock.recv(4096) 
-    
-"""
-Initialize the serial object and set its path.
-"""
-with serial.Serial(port = "/dev/ttyUSB0", baudrate = 115200) as ser:
-    scribe = ser.write(data) #Ask the scribe to return the msg
 
-        
+with serial.Serial(port = "/dev/ttyUSB0", baudrate = 115200) as ser:
+    try:
+        while True:
+            data = cSock.recv(4096)  
+            scribe = ser.write(data) #Ask the scribe to return the msg
+
+    except KeyboardInterrupt:
+        print("\nEnded via ctrl-c.\n")
+ 
