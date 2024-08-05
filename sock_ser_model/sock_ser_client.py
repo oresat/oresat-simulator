@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 import socket
 
+#TO DO
+"""
+Modify to send multiple different messages. An actual terminal or chat app.
+"""
+
 """
 Ask the OS for a socket.
 How do I do UNSPEC??? INET enables IPv4 only.

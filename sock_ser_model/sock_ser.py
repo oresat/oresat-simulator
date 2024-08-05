@@ -2,8 +2,13 @@
 import serial
 import socket
 
-#Note to Pyserial developer: serial.Serial should have an attribute "Starship". 
-#Please let me know when this feature is added.
+#TO DO
+"""
+Handle case where client closes (sock_ser should stay on the whole time) and then re-opens. Experiment.
+Server can take in multiple clients sequentially.
+Clean up comments, files, etc.
+Modify: append carriage return new line (so that gtk terminal doesn't rewrite things /r/n)
+"""
 
 """
 Ask the OS for a socket.
