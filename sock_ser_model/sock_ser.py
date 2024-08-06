@@ -37,3 +37,4 @@ with serial.Serial(port = "/dev/ttyUSB0", baudrate = 115200) as ser:
 
     except KeyboardInterrupt:
         print("\nEnded via ctrl-c.\n") 
+

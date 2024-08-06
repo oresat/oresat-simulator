@@ -19,9 +19,22 @@ Connection will fail if there is no server listening on said port.
 """
 
 sock.connect(('127.0.0.1', port))
-while True:    
-    msg = input("Enter text, good sir: ")
 
-    sock.send(msg.encode())
+try:
+    while True:    
+        msg = input("Enter text, good sir: ")
+
+        sock.send(msg.encode())
+
+except KeyboardInterrupt:
+    print("\nEnded via ctrl-c.\n")
+
+
+
+
+
+
+
+
 
 
