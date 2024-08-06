@@ -4,7 +4,6 @@ import socket
 
 #TO DO
 """
-Handle case where client closes (sock_ser should stay on the whole time) and then re-opens. Experiment.
 Server can take in multiple clients sequentially.
 Clean up comments, files, etc.
 """

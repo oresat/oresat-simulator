@@ -5,7 +5,7 @@ import socket
 
 """
 Ask the OS for a socket.
-How do I do UNSPEC??? INET enables IPv4 only.
+How do I do UNSPEC??? INET enables IPv4 only. Answer: There is a flag for it that says dual...
 SOCK_STREAM enables TCP only.
 """
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
