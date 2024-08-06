@@ -2,9 +2,6 @@
 import socket
 
 #TO DO
-"""
-Modify to send multiple different messages. An actual terminal or chat app.
-"""
 
 """
 Ask the OS for a socket.

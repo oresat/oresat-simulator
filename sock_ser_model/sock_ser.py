@@ -7,7 +7,6 @@ import socket
 Handle case where client closes (sock_ser should stay on the whole time) and then re-opens. Experiment.
 Server can take in multiple clients sequentially.
 Clean up comments, files, etc.
-Modify: append carriage return new line (so that gtk terminal doesn't rewrite things /r/n)
 """
 
 """
