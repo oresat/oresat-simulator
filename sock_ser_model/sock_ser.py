@@ -33,9 +33,8 @@ cSock, cAddr = sock.accept()
 with serial.Serial(port = "/dev/ttyUSB0", baudrate = 115200) as ser:
     try:
         while True:
-            data = cSock.recv(4096)  
+            data = cSock.recv(4096) + b"\n\r"
             scribe = ser.write(data) #Ask the scribe to return the msg
 
     except KeyboardInterrupt:
-        print("\nEnded via ctrl-c.\n")
- 
+        print("\nEnded via ctrl-c.\n") 
