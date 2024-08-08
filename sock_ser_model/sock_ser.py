@@ -49,13 +49,6 @@ while True:
                         break
                     elif len(is_socket_open) == 0:
                         print("\nABOVE ZERO\n")
-                    """
-                    check_socket = cSock.recv(16, socket.MSG_DONTWAIT | socket.MSG_PEEK)
-                    if len(check_socket) == 0:
-                        break
-                    else:
-                        sleep(0.1)
-                    """                        
                 except BlockingIOError: #This is not a problem error.
                     pass
 
