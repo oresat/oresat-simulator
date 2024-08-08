@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import serial
 import socket
+import time
 
 #TO DO
 """
@@ -38,9 +39,14 @@ while True:
                 """
                 Check if socket is still connected.
                 """
-                check_socket = cSock.recv(socket.MSG_DONTWAIT | socket.MSG_PEEK)
-                if len(check_socket) == 0:
-                    break
+                try:     
+                    check_socket = cSock.recv(16, socket.MSG_DONTWAIT | socket.MSG_PEEK)
+                    if len(check_socket) == 0:
+                        break
+                    else:
+                        sleep(0.1)
+                except BlockingIOError:
+                    print("BlockingIOError: Socket is open and this op blocks.")
 
         except KeyboardInterrupt:
             print("\nEnded via ctrl-c.\n") 
