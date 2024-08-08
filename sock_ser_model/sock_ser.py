@@ -4,6 +4,9 @@ import socket
 import time
 
 #TO DO
+#Put the socket stuff in a with block so that it opens with with (then
+#it'll close automatically)
+
 """
 Server can take in multiple clients sequentially.
 Clean up comments, files, etc.
