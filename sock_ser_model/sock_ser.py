@@ -38,10 +38,23 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             try:
                 while True:
                     data = cSock.recv(4096) + b"\n\r"
+                    dataAmount = len(data) #in bytes
+                    try:
+                        if dataAmount == -1:
+                            print("\nSocket closed on other end. Will keep listening.\n")
+                            break
+                        elif dataAmount == 0:
+                            print("\nSocket shut down in orderly fashion.\n")
+                            break
+                        elif dataAmount == 2: #\n\r is two bytes that are sent regardless of extra data creo que si
+                            break
+                        elif dataAmount > 2:
+                            print(f"{dataAmount} bytes received. We're good for now.")
+                    except BlockingIOError: #This is not a problem error.
+                        pass
                     scribe = ser.write(data) #Ask the scribe to return the msg
                     """
                     Check if socket is still connected.
-                    """
                     try:     
                         is_socket_open = cSock.recv(16, socket.MSG_DONTWAIT | socket.MSG_PEEK)
                         if len(is_socket_open) == -1:
@@ -54,7 +67,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                             print("\nABOVE ZERO\n")
                     except BlockingIOError: #This is not a problem error.
                         pass
-
+                    """                
+    
             except KeyboardInterrupt:
                 print("\nEnded via ctrl-c.\n") 
 
