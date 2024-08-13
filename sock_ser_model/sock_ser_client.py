@@ -1,33 +1,47 @@
 #!/usr/bin/env python
 import socket
+import argparse
 
 #TO DO
 
-"""
-Ask the OS for a socket.
-How do I do UNSPEC??? INET enables IPv4 only. Answer: There is a flag for it that says dual...
-SOCK_STREAM enables TCP only.
-"""
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description="Socket to serial TCP client."
+    )
 
-    """Create a port integer."""
-    port = 16327
+    parser.add_argument(
+        "IP", help="127.0.0.1 is loopback address",
+        default="127.0.0.1"
+    )
+
+    args = parser.parse_args()
 
     """
-    Connect to an IP address on a specific port.
-    Connection will fail if there is no server listening on said port.
+    Ask the OS for a socket.
+    How do I do UNSPEC??? INET enables IPv4 only. Answer: There is a flag for it that says dual...
+    SOCK_STREAM enables TCP only.
     """
 
-    sock.connect(('127.0.0.1', port))
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
 
-    try:
-        while True:    
-            msg = input("Enter text, good sir: ")
+        """Create a port integer."""
+        port = 16327
 
-            sock.send(msg.encode())
+        """
+        Connect to an IP address on a specific port.
+        Connection will fail if there is no server listening on said port.
+        """
 
-    except KeyboardInterrupt:
-        print("\nEnded via ctrl-c.\n")
+        sock.connect((args.IP, port))
+
+        try:
+            while True:    
+                msg = input("Enter text, good sir: ")
+
+                sock.send(msg.encode())
+
+        except KeyboardInterrupt:
+            print("\nEnded via ctrl-c.\n")
 
 
 
