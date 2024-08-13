@@ -10,7 +10,7 @@ if __name__ == '__main__':
     )
 
     parser.add_argument(
-        "IP", help="127.0.0.1 is loopback address",
+        "-IP", help="127.0.0.1 is loopback address",
         default="127.0.0.1"
     )
 

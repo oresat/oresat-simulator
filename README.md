@@ -7,8 +7,12 @@ to the Helmholtz Cage and Solar Simulator.
 sock_ser_model contains the current server/client model. Everything else is an archive or precursor program.
 
 # Running the server and client
-WORK IN PROGRESS
-use sudo for the server, not needed for the client
-run gtkterm -p /dev/ttyUSB1 or equivalent 
+You should install GTK Terminal or the equivalent and open it with sudo:
+For me using GTK:
+sudo gtkterm -p /dev/ttyUSB1
 
+Open sock_ser.py:
+sudo ./sock_ser.py -IP [IP Address, default is 127.0.0.1]
 
+Open sock_ser_client.py:
+./sock_ser_client.py -IP [IP Address, default same as above]
