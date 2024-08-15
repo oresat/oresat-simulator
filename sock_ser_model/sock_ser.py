@@ -4,16 +4,6 @@ import socket
 import time
 import argparse
 
-#TO DO
-#Put the socket stuff in a with block so that it opens with with (then
-#it'll close automatically)
-
-"""
-Server can take in multiple clients sequentially.
-Clean up comments, files, etc.
-"""
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description="Socket to serial TCP server."
@@ -25,22 +15,19 @@ if __name__ == '__main__':
     )
 
     args = parser.parse_args()
+
     """
     Ask the OS for a socket.
-    How do I do UNSPEC??? INET enables IPv4 only.
-    SOCK_STREAM enables TCP only.
     """
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
 
         """Create a port integer."""
         port = 16327
-
+        
         """
         Bind the socket to our port.
         127.0.0.1 is the loopback host (means we connect to our computer).
-        Note that nothing is connected yet - just setting things up.
         """
-
         sock.bind((args.IP, port))
         sock.listen()
 

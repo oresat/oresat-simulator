@@ -4,7 +4,7 @@ The goal is to receive data (the outputs from a Basilisk simulation or similar)
 repeatedly via socket and then transmit that data repeatedly over serial port
 to the Helmholtz Cage and Solar Simulator.
 
-sock_ser_model contains the current server/client model. Everything else is an archive or precursor program.
+sock_ser_model contains the current server/client model. 
 
 # Running the server and client
 You should install GTK Terminal or the equivalent and open it with sudo:
