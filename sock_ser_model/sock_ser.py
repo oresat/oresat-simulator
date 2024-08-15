@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 import serial
 import socket
-import time
 import argparse
 
+"""See README for argparse instructions."""
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description="Socket to serial TCP server."
@@ -16,26 +16,29 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    """
-    Ask the OS for a socket.
-    """
+    """Ask the OS for a socket."""
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
 
         """Create a port integer."""
         port = 16327
         
-        """
-        Bind the socket to our port.
-        127.0.0.1 is the loopback host (means we connect to our computer).
-        """
+        """Bind the socket to our port."""
         sock.bind((args.IP, port))
         sock.listen()
 
         while True:
+            """Accept an incoming client with a copy of sock."""
             cSock, cAddr = sock.accept()
 
+            """
+            Open up one end of serial port, set data transfer rate.
+            """
             with serial.Serial(port = "/dev/ttyUSB0", baudrate = 115200) as ser:
                 try:
+                    """
+                    Continuously attempt to receive data via socket from client.
+                    If nothing bad happens, scribe sendis the received data over the serial port.
+                    """
                     while True:
                         data = cSock.recv(4096) 
                         dataAmount = len(data) #in bytes
@@ -51,7 +54,3 @@ if __name__ == '__main__':
 
                 except KeyboardInterrupt:
                     print("\nEnded via ctrl-c.\n") 
-
-
-
-

@@ -2,6 +2,7 @@
 import socket
 import argparse
 
+"""See README for argparse instructions."""
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description="Socket to serial TCP client."
@@ -14,12 +15,10 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    """
-    Ask the OS for a socket.
-    """
+    """Ask the OS for a socket."""
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
 
-        """Create a port integer."""
+        """Create a port integer (it's arbitrary)."""
         port = 16327
 
         """
@@ -28,12 +27,12 @@ if __name__ == '__main__':
         """
         sock.connect((args.IP, port))
 
+        """Send user's text input over socket."""
         try:
             while True:    
                 msg = input("Enter text, good sir: ")
-
-                sock.send(msg.encode())
-
+                sock.send(msg.encode()) #.encode required to convert txt to bytes
+        
         except KeyboardInterrupt:
             print("\nEnded via ctrl-c.\n")
 
