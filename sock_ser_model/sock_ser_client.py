@@ -31,7 +31,6 @@ if __name__ == '__main__':
         Connect to an IP address on a specific port.
         Connection will fail if there is no server listening on said port.
         """
-
         sock.connect((args.IP, port))
 
         try:
@@ -42,6 +41,12 @@ if __name__ == '__main__':
 
         except KeyboardInterrupt:
             print("\nEnded via ctrl-c.\n")
+
+
+
+
+
+
 
 
 
