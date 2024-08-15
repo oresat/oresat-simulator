@@ -11,11 +11,11 @@ You should install GTK Terminal or the equivalent and open it with sudo:
 For me using GTK:
 sudo gtkterm -p /dev/ttyUSB1
 
-Open sock_ser.py:
-sudo ./sock_ser.py -IP [IP Address, default is 127.0.0.1]
+Open s2s_server.py:
+sudo ./s2s_server.py -IP [IP Address, default is 127.0.0.1]
 
-Open sock_ser_client.py:
-./sock_ser_client.py -IP [IP Address, default same as above]
+Open s2s_client.py:
+./s2s_client.py -IP [IP Address, default same as above]
 
 When using two computers, use -IP [the IP address of the computer running
-the server: sock_ser.py]
+the server]
