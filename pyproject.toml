@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "s2s_model"
+description = "Socket to serial TCP program for simulator hardware."
+requires-python = ">=3.8"
+
+dependencies = ["pyserial"]
+
+dynamic = ["version"]

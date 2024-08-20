@@ -6,6 +6,12 @@ to the Helmholtz Cage and Solar Simulator.
 
 sock_ser_model contains the current server/client model. 
 
+# Dependencies Installation
+pyserial
+
+Install with: pip install pyserial
+
+
 # Running the server and client
 You should install GTK Terminal or the equivalent and open it with sudo:
 For me using GTK:
