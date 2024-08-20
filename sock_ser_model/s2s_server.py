@@ -42,10 +42,7 @@ if __name__ == '__main__':
                     while True:
                         data = cSock.recv(4096) 
                         dataAmount = len(data) #in bytes
-                        if dataAmount == -1:
-                            print("\nSocket closed on other end. Will keep listening.\n")
-                            break
-                        elif dataAmount == 0:
+                        if dataAmount == 0:
                             print("\nSocket shut down in orderly fashion.\n")
                             break
                         elif dataAmount > 0:
