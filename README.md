@@ -9,8 +9,10 @@ sock_ser_model contains the current server/client model.
 # Dependencies Installation
 pyserial
 
-Install with: pip install pyserial
-
+Install with: pip install pyserial might work
+If cannot run this as root, you'll need to install it system-wide 
+with your package manager. 
+On Debian: "sudo apt install python3-pyserial"
 
 # Running the server and client
 You should install GTK Terminal or the equivalent and open it with sudo:
