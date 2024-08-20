@@ -47,7 +47,3 @@ if __name__ == '__main__':
 
                 except KeyboardInterrupt:
                     print("\nEnded via ctrl-c.\n") 
-
-
-
-
