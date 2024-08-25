@@ -18,6 +18,12 @@ if __name__ == '__main__':
 
     #Ask the OS for a socket.
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        @dataclass 
+        class Element:
+            x: float
+            y: float
+            z: float
+        array = []
 
         #Create a port integer.
         port = 16327
@@ -33,10 +39,8 @@ if __name__ == '__main__':
             #Open up one end of serial port, set data transfer rate.
             with serial.Serial(port = "/dev/ttyUSB0", baudrate = 115200) as ser:
                 try:
-                    #Continuously attempt to receive data via socket from client.
-                    #If nothing bad happens, scribe sends the received data over the serial port.
                     while True:
-                        data = cSock.recv(4096) 
+                        data = cSock.recv(120) 
                         dataAmount = len(data) #in bytes
                         if dataAmount == 0:
                             print("\nSocket shut down in orderly fashion.\n")
@@ -44,6 +48,9 @@ if __name__ == '__main__':
                         elif dataAmount > 0:
                             print(f"\n{dataAmount} bytes received. We're good for now.\n")
                         scribe = ser.write(data + b"\r\n") #Scribe returns the msg + /r/n
+                        #array.append(element(data.decode(python struct 4 bytes)))  
+    
+                        
 
                 except KeyboardInterrupt:
                     print("\nEnded via ctrl-c.\n") 
