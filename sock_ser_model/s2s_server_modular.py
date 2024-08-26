@@ -2,6 +2,7 @@
 import serial
 import socket
 import argparse
+import struct
 
 #See README for argparse instructions.
 if __name__ == '__main__':
@@ -48,6 +49,8 @@ if __name__ == '__main__':
                         elif dataAmount > 0:
                             print(f"\n{dataAmount} bytes received. We're good for now.\n")
                         scribe = ser.write(data + b"\r\n") #Scribe returns the msg + /r/n
+                        toAppend = Element(struct.unpack('f', data
+                        array.append(
                         #array.append(element(data.decode(python struct 4 bytes)))  
     
                         
