@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import struct
 import socket
 from dataclasses import dataclass
@@ -18,8 +19,9 @@ for x in range(10):
 print(array)
 
 to_send = bytes()
-for i in range(len(array)):
-    to_send += struct.pack('3f', array[i].x, array[i].y, array[i].z)
+#for i in range(len(array)):
+for item in array:
+    to_send += struct.pack('3f', item.x, item.y, item.z)
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
     
