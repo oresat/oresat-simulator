@@ -2,6 +2,7 @@
 import struct
 import socket
 from dataclasses import dataclass
+import pprint
 
 @dataclass 
 class Element:
@@ -21,15 +22,11 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
     cSock, cAddr = sock.accept()
 
     data = cSock.recv(120) 
-    """ 
     for x, y, z in struct.iter_unpack('3f', data):
-        new_array += Element(x,y,z)
-    """
-    for group in struct.iter_unpack('3f', data):
-        to_append = Element(group) #pseudocode
-        new_array.append(to_append)
-        print(group)
-    #array = struct.unpack('30f', data)
+        item = Element(x,y,z)
+        new_array.append(item)
+
+pprint.pp(new_array)
 """
 print(array)
 print()
