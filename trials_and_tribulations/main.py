@@ -1,5 +1,6 @@
 #import parse_tle
 #import numpy as np
+"""This is used for checking the TLE parsing function"""
 
 def T_to_mG(data):
     #convert each value to mG. 1Tesla = 10^7 mG
