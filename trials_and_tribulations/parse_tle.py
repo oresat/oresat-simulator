@@ -82,31 +82,42 @@ class Tle(object):
 
             return float(val)
 
-        self.satnumber = self.line1[2:7]
-        self.classification = self.line1[7]
-        self.id_launch_year = self.line1[9:11]
-        self.id_launch_number = self.line1[11:14]
-        self.id_launch_piece = self.line1[14:17]
-        self.epoch_year = self.line1[18:20]
-        self.epoch_day = float(self.line1[20:32])
+        first_line = self.line1.split()
+        second_line = self.line2.split()
+
+        var = first_line[1]
+        self.classification = var[-1]#self.line1[7]
+        self.satnumber = var[:-1]
+
+        var = first_line[2]
+        self.id_launch_year = float(var[0:2])
+        self.id_launch_number = float(var[2:-1])
+        self.id_launch_piece = var[-1]
+
+        var = first_line[3]
+        self.epoch_year = var[0:2]
+        self.epoch_day = float(var[2:])
         self.epoch = \
             np.datetime64(dt.datetime.strptime(self.epoch_year, "%y") +
                           dt.timedelta(days=self.epoch_day - 1), 'us')
-        self.mean_motion_derivative = float(self.line1[33:43])
-        self.mean_motion_sec_derivative = _read_tle_decimal(self.line1[44:52])
-        self.bstar = _read_tle_decimal(self.line1[53:61])
+        
+        self.mean_motion_derivative = float(first_line[4])
+        self.mean_motion_sec_derivative = _read_tle_decimal(first_line[5])
+        self.bstar = _read_tle_decimal(first_line[6])
         try:
-            self.ephemeris_type = int(self.line1[62])
+            self.ephemeris_type = int(first_line[7])
         except ValueError:
             self.ephemeris_type = 0
-        self.element_number = int(self.line1[64:68])
+        self.element_number = int(first_line[8]) # ?????TODO FIXME?????
 
-        self.inclination = float(self.line2[8:16])
-        self.right_ascension = float(self.line2[17:25])
-        self.excentricity = int(self.line2[26:33]) * 10 ** -7
-        self.arg_perigee = float(self.line2[34:42])
-        self.mean_anomaly = float(self.line2[43:51])
-        self.mean_motion = round(float(self.line2[52:63]), 4)
+        self.inclination = float(second_line[2])
+        self.right_ascension = float(second_line[3])
+        self.excentricity = int(second_line[4]) * 10 ** -7
+        self.arg_perigee = float(second_line[5])
+        self.mean_anomaly = float(second_line[6])
+
+        var = second_line[7]
+        self.mean_motion = round(float(self.line2[52:63]), 4) ##hewp :(
         self.orbit = int(self.line2[63:68])
 
         self.mu = 398600.4418 #km^3 / s^2
