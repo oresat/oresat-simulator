@@ -26,7 +26,6 @@ cargo = pack_array_data(array)
 pprint.pp(array)
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-    
     port = 40000
     
     sock.connect(("127.0.0.1", port))
