@@ -33,6 +33,9 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 """
                 
                 with serial.Serial(port = "/dev/ttyUSB0", baudrate = 115200) as ser:
+                    print()
+                    print(data.hex())
+                    print()
                     envoy = ser.write(data)
 
     except KeyboardInterrupt:   
