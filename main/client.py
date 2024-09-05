@@ -3,6 +3,7 @@ import struct
 import socket
 from dataclasses import dataclass
 import pprint
+import time
 
 array = []
 
@@ -29,5 +30,10 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
     port = 40000
     
     sock.connect(("127.0.0.1", port))
-   
-    sock.send(cargo) 
+    try:
+        while True: 
+            sock.send(cargo) 
+            time.sleep(1)
+
+    except KeyboardInterrupt:
+        print("\nClient ended via ctrl-c.\n")
