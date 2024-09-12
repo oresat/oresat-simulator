@@ -15,7 +15,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         while True:
             cSock, cAddr = sock.accept()
             while True:
-                data = cSock.recv(120) 
+                data = cSock.recv(1200) 
                 dataAmount = len(data)
                 if dataAmount == 0:
                     print("\nSocket shut down in orderly fashion.\n")

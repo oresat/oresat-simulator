@@ -370,17 +370,54 @@ def T_to_mG(data): # need to modify to take data rather than a file - currently 
             mG_line.append(val)
 
         mG_vals.append(mG_line)
-
     print(mG_vals)
+    return mG_vals
+
+#Send mG_vals to server
+import struct
+import socket
+import time
+
 #
 # This statement below ensures that the unit test script can be run as a
 # stand-along python script
 #
 if __name__ == "__main__":
-    data = run(
-        True,          # show_plots
-        'elliptical',  # orbit Case (circular, elliptical)
-    )
+    yesno = input("Do you want a graphical display or not? Y/n: ")
+    if yesno.upper() == 'Y':
+        data = run(
+            True,          # show_plots
+            'elliptical',  # orbit Case (circular, elliptical)
+        )
+    else:
+        data = run(
+            False,          # show_plots
+            'elliptical',  # orbit Case (circular, elliptical)
+        )
+        
+    loopback = "127.0.0.1"
+    
+    def pack_array_data(array):
+        to_send = bytes()
+        for item in array:
+            for i in range(3):
+                to_send += struct.pack('f', item[i])
+        return to_send 
+
+    cargo = pack_array_data(T_to_mG(data)) #send mG_vals into function
+                                           #and then return it in byte
+                                           #format
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        port = 40000
+        
+        sock.connect(("127.0.0.1", port))
+        try:
+            sock.send(cargo) 
+            #time.sleep(1)
+
+        except KeyboardInterrupt:
+            print("\nClient ended via ctrl-c.\n")
+        
     #save data to text file, then convert units and replace txt file and call it magData-date
-    T_to_mG(data)
     #then redirect where data needs to go. this is in Teslas
