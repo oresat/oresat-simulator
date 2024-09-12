@@ -27,3 +27,5 @@ Open s2s_client.py:
 
 When using two computers, use -IP [the IP address of the computer running
 the server]
+
+SECTION ABOUT HOW TO ENSURE THAT ttyUSB0 is allowed to be used by regular users!!!
