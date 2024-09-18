@@ -14,18 +14,30 @@ If cannot run this as root, you'll need to install it system-wide
 with your package manager. 
 On Debian: "sudo apt install python3-pyserial"
 
+#Permissions
+In order to let the program access the computer's serial ports you may
+need to set permissions:
+sudo usermod -a -G dialout [root_username]
+
 # Running the server and client
+You need to be in a virtual environment for the files using Basilisk to function:
+Venv recommended.
+
 You should install GTK Terminal or the equivalent and open it with sudo:
 For me using GTK:
 sudo gtkterm -p /dev/ttyUSB1
 
-Open s2s_server.py:
-sudo ./s2s_server.py -IP [IP Address, default is 127.0.0.1]
+Activate your virtual environment.
 
-Open s2s_client.py:
-./s2s_client.py -IP [IP Address, default same as above]
+In trials_and_tribulations:
 
-When using two computers, use -IP [the IP address of the computer running
-the server]
+Open server.py:
+./server.py
 
-SECTION ABOUT HOW TO ENSURE THAT ttyUSB0 is allowed to be used by regular users!!!
+Open scenarioMagneticFieldWMM.py
+./scenarioMagneticFieldWMM.py
+
+If you run with visualization the program will not send data until
+the visualization windows are manually exited.
+
+Quit with ctrl-c.
