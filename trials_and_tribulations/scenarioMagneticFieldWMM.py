@@ -378,6 +378,7 @@ import struct
 import socket
 import time
 
+#Transform data in mG_vals to bytes
 def pack_array_data(array):
     to_send = bytes()
     for item in array:
@@ -390,7 +391,7 @@ def pack_array_data(array):
 # stand-along python script
 #
 if __name__ == "__main__":
-    loopback = "127.0.0.1"
+    loopback = "127.0.0.1" #Allows local data send
     
     port = 40000
     yesno = input("Do you want a graphical display or not? Y/n: ")
@@ -398,7 +399,7 @@ if __name__ == "__main__":
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
 
         try: 
-            sock.connect((loopback, port))
+            sock.connect((loopback, port)) 
                 
             while True:
                 
@@ -421,6 +422,3 @@ if __name__ == "__main__":
         
         except KeyboardInterrupt:
             print("\nClient ended via ctrl-c.\n")
-            
-        #save data to text file, then convert units and replace txt file and call it magData-date
-        #then redirect where data needs to go. this is in Teslas
