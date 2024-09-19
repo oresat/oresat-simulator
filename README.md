@@ -1,18 +1,26 @@
 # oresat-simulator
-
-The goal is to receive data (the outputs from a Basilisk simulation or similar) 
-repeatedly via socket and then transmit that data repeatedly over serial port
-to the Helmholtz Cage and Solar Simulator.
-
-sock_ser_model contains the current server/client model. 
+Function: Take output data from client program and send it via socket to server program
+which then transmits it over serial port to a hardware simulator. This model is currently
+configured to send magnetometer data to the Helmholtz Cage.
 
 # Dependencies Installation
-pyserial
+Python
+Basilisk
+Pyserial
 
-Install with: pip install pyserial might work
-If cannot run this as root, you'll need to install it system-wide 
-with your package manager. 
-On Debian: "sudo apt install python3-pyserial"
+Start by installing Basilisk.
+Installing basilisk is complicated. Follow the instructions on:
+https://hanspeterschaub.info/basilisk/Install/installOnLinux.html
+
+Note that Basilisk has several dependencies which need to be installed first.
+
+You will need to install pyserial within the virtual environment that you run Basilisk in.
+
+Either:
+    pip install pyserial
+or:
+    sudo apt install python3-pyserial"
+
 
 #Permissions
 In order to let the program access the computer's serial ports you may
@@ -22,10 +30,6 @@ sudo usermod -a -G dialout [root_username]
 # Running the server and client
 You need to be in a virtual environment for the files using Basilisk to function:
 Venv recommended.
-
-You should install GTK Terminal or the equivalent and open it with sudo:
-For me using GTK:
-sudo gtkterm -p /dev/ttyUSB1
 
 Activate your virtual environment.
 
