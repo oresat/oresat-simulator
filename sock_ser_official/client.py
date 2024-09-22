@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+#OUTDATED, use scenarioMagnetic... .py
 import struct
 import socket
 from dataclasses import dataclass

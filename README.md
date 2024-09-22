@@ -33,7 +33,7 @@ Venv recommended.
 
 Activate your virtual environment.
 
-In trials_and_tribulations:
+In sock-ser-official:
 
 Open server.py:
 ./server.py
