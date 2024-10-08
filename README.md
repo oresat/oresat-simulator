@@ -26,7 +26,7 @@ In order to let the program access the computer's serial ports you may
 need to set permissions:
 sudo usermod -a -G dialout [username]
 
-# Running the server and client
+# Running the Server and Client
 You need to be in a virtual environment for the files using Basilisk to function:
 Venv recommended.
 
