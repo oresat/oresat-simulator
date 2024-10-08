@@ -380,11 +380,7 @@ import time
 
 #Transform data in mG_vals to bytes
 def pack_array_data(array):
-    to_send = bytes()
-    for item in array:
-        for i in range(3):
-            to_send += struct.pack('f', item[i])
-    return to_send 
+    return b''.join(struct.pack('3f', *vec) for vec in array)
 
 #
 # This statement below ensures that the unit test script can be run as a
