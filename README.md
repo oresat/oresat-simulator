@@ -8,7 +8,7 @@ Python
 Basilisk
 Pyserial
 
-Start by installing Basilisk.
+Start by installing Basilisk in a Python virtual environment.
 Installing basilisk is complicated. Follow the instructions on:
 https://hanspeterschaub.info/basilisk/Install/installOnLinux.html
 
@@ -16,16 +16,15 @@ Note that Basilisk has several dependencies which need to be installed first.
 
 You will need to install pyserial within the virtual environment that you run Basilisk in.
 
-Either:
-    pip install pyserial
-or:
-    sudo apt install python3-pyserial"
+Install with: "pip install pyserial"
 
+If you cannot run this as root, you'll need to install it system-wide with your package manager. 
+On Debian: "sudo apt install python3-pyserial"
 
 #Permissions
 In order to let the program access the computer's serial ports you may
 need to set permissions:
-sudo usermod -a -G dialout [root_username]
+sudo usermod -a -G dialout [username]
 
 # Running the server and client
 You need to be in a virtual environment for the files using Basilisk to function:
