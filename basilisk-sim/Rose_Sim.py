@@ -95,29 +95,56 @@ def run(show_plots, livestream, step_time, stop_time, rI, init_pos, init_vel, in
     scenarioSim.AddModelToTask(taskName, eclipseObject)
     scenarioSim.AddModelToTask(taskName, eclipseLog)
 
+    # define directions
+    directions = {"x+": [1, 0, 0],
+                  "x-": [-1, 0, 0],
+                  "y+": [0, 1, 0],
+                  "y-": [0, -1, 0],
+                  "z+": [0, 0, 1],
+                  "z-": [0, 0, -1]}
+
+
+    # coarse solar sensor
+    sun_sensors = dict()
+    sun_logs = dict()
+    for direction,vector in directions.items():
+        # later, see if we can do a constallation
+        sun_sensors[direction] = coarseSunSensor.CoarseSunSensor()
+        sun_sensors[direction].ModelTag = "sunSensor_"+direction
+        # field of view from normal is 90 degrees
+        sun_sensors[direction].fov = 90. * macros.D2R
+        sun_sensors[direction].nHat_B = np.array(vector)
+        sun_sensors[direction].sunInMsg.subscribeTo(sunMsg)
+        sun_sensors[direction].stateInMsg.subscribeTo(scObjectMsg)
+        sun_sensors[direction].sunEclipseInMsg.subscribeTo(eclipseMsg)
+        sun_logs[direction] = sun_sensors[direction].cssDataOutMsg.recorder()
+        scenarioSim.AddModelToTask(taskName, sun_sensors[direction])
+        scenarioSim.AddModelToTask(taskName, sun_logs[direction])
+
+
 
     # Create a solar panel
     # Set the panel normal vector in the body frame, the area,
-    solarPanel = basilisk_wrapper.get_solar_panel("solarPanel", scObjectMsg, eclipseMsg, sunMsg, [[1,0,0], 0.2*0.3, 0.20]) 
-    spLog = solarPanel.nodePowerOutMsg.recorder()
-    scenarioSim.AddModelToTask(taskName, solarPanel)
-    scenarioSim.AddModelToTask(taskName, spLog)
+    #solarPanel = basilisk_wrapper.get_solar_panel("solarPanel", scObjectMsg, eclipseMsg, sunMsg, [[1,0,0], 0.2*0.3, 0.20]) 
+    #spLog = solarPanel.nodePowerOutMsg.recorder()
+    #scenarioSim.AddModelToTask(taskName, solarPanel)
+    #scenarioSim.AddModelToTask(taskName, spLog)
 
 
     #   Create a simple power sink
-    powerSink = basilisk_wrapper.get_power_sink("powerSink2", -3)
-    psLog = powerSink.nodePowerOutMsg.recorder()
-    scenarioSim.AddModelToTask(taskName, powerSink)
-    scenarioSim.AddModelToTask(taskName, psLog)
+    #powerSink = basilisk_wrapper.get_power_sink("powerSink2", -3)
+    #psLog = powerSink.nodePowerOutMsg.recorder()
+    #scenarioSim.AddModelToTask(taskName, powerSink)
+    #scenarioSim.AddModelToTask(taskName, psLog)
 
 
     # Create a simpleBattery and attach the sources/sinks to it
-    powerMonitor = basilisk_wrapper.get_power_monitor("powerMonitor", capacity=(10.0*3600.0), init_charge=(10.0*3600.0))
-    powerMonitor.addPowerNodeToModel(solarPanel.nodePowerOutMsg)
-    powerMonitor.addPowerNodeToModel(powerSink.nodePowerOutMsg)
-    pmLog = powerMonitor.batPowerOutMsg.recorder()
-    scenarioSim.AddModelToTask(taskName, powerMonitor)
-    scenarioSim.AddModelToTask(taskName, pmLog)
+    #powerMonitor = basilisk_wrapper.get_power_monitor("powerMonitor", capacity=(10.0*3600.0), init_charge=(10.0*3600.0))
+    #powerMonitor.addPowerNodeToModel(solarPanel.nodePowerOutMsg)
+    #powerMonitor.addPowerNodeToModel(powerSink.nodePowerOutMsg)
+    #pmLog = powerMonitor.batPowerOutMsg.recorder()
+    #scenarioSim.AddModelToTask(taskName, powerMonitor)
+    #scenarioSim.AddModelToTask(taskName, pmLog)
 
 
     #   Try and get Vizard to work
@@ -146,25 +173,34 @@ def run(show_plots, livestream, step_time, stop_time, rI, init_pos, init_vel, in
     # Position and Time
     posData = satLog.r_BN_N
     timeAxis = satLog.times() * macros.NANO2HOUR
-    #plLog
-    #sunLog
 
     # Magnetic Field
     magData = magLog.magField_N
 
     # Solar
     eclipseData = eclipseLog.shadowFactor
-    supplyData = spLog.netPower
-    sinkData = psLog.netPower
-    storageData = pmLog.storageLevel
-    netData = pmLog.currentNetPower
+    #supplyData = spLog.netPower
+    #sinkData = psLog.netPower
+    #storageData = pmLog.storageLevel
+    #netData = pmLog.currentNetPower
 
-    temp_data = []
+    sunData = { direction:[float(reading) for reading in sunLog.OutputData] for direction,sunLog in sun_logs.items() }
+
+    sun_data = [["sun_exposure", "x+", "x-", "y+", "y-", "z+", "z-"]]
     for ii in range(len(timeAxis)):
-            temp_data.append([float(timeAxis[ii]), [float(magd) for magd in magData[ii]], float(eclipseData[ii])])
+        sun_data.append([float(eclipseData[ii])] + [direction[ii] for direction in sunData.values()])
+    with open('sun.csv', 'w') as fd:
+        for line in sun_data:
+            fd.write(",".join([str(thing) for thing in line]) + "\n")
+
+
+
+    temp_data = [["time", "mag_x", "mag_y", "mag_z", "is_eclipsed"]]
+    for ii in range(len(timeAxis)):
+        temp_data.append([float(timeAxis[ii])] + [float(magd) for magd in magData[ii]] + [float(eclipseData[ii])])
     with open('output.txt','w') as fd:
-            for line in temp_data:
-                fd.write(str(line) + "\n")
+        for line in temp_data:
+            fd.write(str(line) + "\n")
 
 
     time_ns = satLog.times()
@@ -172,25 +208,25 @@ def run(show_plots, livestream, step_time, stop_time, rI, init_pos, init_vel, in
     time_ns = satLog.times()
     time_ns_m = time_ns * macros.NANO2HOUR
 
-    tvec = spLog.times()
+    tvec = satLog.times()
     tvec = tvec * macros.NANO2HOUR
 
     #   Plot the power states
     figureList = {}
     
     # sol_modular graph data
-    plt.figure(1)
-    plt.plot(time_ns_m, storageData/3600., label='Stored Power (W-Hr)')
-    plt.plot(time_ns_m, netData, label='Net Power (W)')
-    plt.plot(time_ns_m, supplyData, label='Panel Power (W)')
-    plt.plot(time_ns_m, sinkData, label='Power Draw (W)')
-    plt.xlabel('Time (Hr)')
-    plt.ylabel('Power (W)')
-    plt.grid(True)
-    plt.legend()
+    #plt.figure(1)
+    #plt.plot(time_ns_m, storageData/3600., label='Stored Power (W-Hr)')
+    #plt.plot(time_ns_m, netData, label='Net Power (W)')
+    #plt.plot(time_ns_m, supplyData, label='Panel Power (W)')
+    #plt.plot(time_ns_m, sinkData, label='Power Draw (W)')
+    #plt.xlabel('Time (Hr)')
+    #plt.ylabel('Power (W)')
+    #plt.grid(True)
+    #plt.legend()
 
-    pltName = "scenario_powerDemo"
-    figureList[pltName] = plt.figure(1)
+    #pltName = "scenario_powerDemo"
+    #figureList[pltName] = plt.figure(1)
 
 
     plt.figure(2)
