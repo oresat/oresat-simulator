@@ -23,6 +23,7 @@ def random_list(conn, shared_data, lower, upper, num_nums_1, num_nums_2):
     shared_data.extend(my_numbers_2)
 
     # add other simulation to memory
+    print("Simulation Done")
 
 
 
