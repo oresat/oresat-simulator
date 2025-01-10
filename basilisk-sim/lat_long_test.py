@@ -12,12 +12,12 @@ from oresat_adcs.functions import frame
 if __name__ == "__main__":
     
     now = datetime.utcnow()
-    # print(now)
+    print(now)
     my_clock = jday.JClock(now.year, now.month, now.day, now.hour, now.minute, now.second)
 
 
-    tle1 = "1 98867U          24238.20000000  .00000000  00000-0  20199-3 0    06"
-    tle2 = "2 98867  97.4404 314.0487 0008202 330.6740  42.2938 15.18964090    01"
+    tle1 = "1 60525U          25004.48362129  .00018640  00000+0  75182-3 0  9998"
+    tle2 = "2 60525  97.4221  84.3092 0008320  17.7816 342.3712 15.24829749 21392"
 
     # USE SGP4
     sat_sgp4 = Satrec.twoline2rv(tle1, tle2)

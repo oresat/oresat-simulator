@@ -186,21 +186,28 @@ def run(show_plots, livestream, step_time, stop_time, rI, init_pos, init_vel, in
 
     sunData = { direction:[float(reading) for reading in sunLog.OutputData] for direction,sunLog in sun_logs.items() }
 
-    sun_data = [["sun_exposure", "x+", "x-", "y+", "y-", "z+", "z-"]]
+    sun_data = [["time","sun_exposure", "x+", "x-", "y+", "y-", "z+", "z-"]]
     for ii in range(len(timeAxis)):
-        sun_data.append([float(eclipseData[ii])] + [direction[ii] for direction in sunData.values()])
+        sun_data.append([float(timeAxis[ii])] + [float(eclipseData[ii])] + [direction[ii] for direction in sunData.values()])
     with open('sun.csv', 'w') as fd:
         for line in sun_data:
             fd.write(",".join([str(thing) for thing in line]) + "\n")
 
-
-
-    temp_data = [["time", "mag_x", "mag_y", "mag_z", "is_eclipsed"]]
+    mag_data = [["time", "mag_x", "mag_y", "mag_z"]]
     for ii in range(len(timeAxis)):
-        temp_data.append([float(timeAxis[ii])] + [float(magd) for magd in magData[ii]] + [float(eclipseData[ii])])
-    with open('output.txt','w') as fd:
-        for line in temp_data:
-            fd.write(str(line) + "\n")
+        mag_data.append([float(timeAxis[ii])] + [float(magd) for magd in magData[ii]])
+    with open('mag.csv', 'w') as fd:
+        for line in mag_data:
+            fd.write(",".join([str(thing) for thing in line]) + "\n")
+
+
+    #temp_data = [["time", "mag_x", "mag_y", "mag_z", "is_eclipsed"]]
+    #for ii in range(len(timeAxis)):
+        #temp_data.append([float(timeAxis[ii])] + [float(magd) for magd in magData[ii]] + [float(eclipseData[ii])])
+    #with open('output.txt','w') as fd:
+        #for line in temp_data:
+            #fd.write(str(line) + "\n")
+
 
 
     time_ns = satLog.times()
@@ -285,7 +292,7 @@ if __name__ == "__main__":
         True,  # show_plots
         False,  # livestream
         step_time = 1.0,
-        stop_time = 259200.0,
+        stop_time = 1000.0,
         rI = rI,
         init_pos = init_position,
         init_vel = init_velocity,
