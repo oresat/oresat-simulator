@@ -200,6 +200,9 @@ def run(show_plots, livestream, step_time, stop_time, rI, init_pos, init_vel, in
         for line in mag_data:
             fd.write(",".join([str(thing) for thing in line]) + "\n")
 
+    all_data = [["time","sun_exposure", "x+", "x-", "y+", "y-", "z+", "z-","mag_x", "mag_y", "mag_z"]]
+    for ii in range(len(timeAxis)):
+        all_data.append([float(timeAxis[ii])]+ [float(eclipseData[ii])] + [direction[ii] for direction in sunData.values()] + [float(magd) for magd in magData[ii]])
 
     #temp_data = [["time", "mag_x", "mag_y", "mag_z", "is_eclipsed"]]
     #for ii in range(len(timeAxis)):
@@ -236,38 +239,39 @@ def run(show_plots, livestream, step_time, stop_time, rI, init_pos, init_vel, in
     #figureList[pltName] = plt.figure(1)
 
 
-    plt.figure(2)
-    fig = plt.gcf()
-    ax = fig.gca()
-    for idx in range(3):
-        plt.plot(posData[: ,idx])
+    #plt.figure(2)
+    #fig = plt.gcf()
+    #ax = fig.gca()
+    #for idx in range(3):
+        #plt.plot(posData[: ,idx])
 
-    pltName = "position"
-    figureList[pltName] = plt.figure(2)
+    #pltName = "position"
+    #figureList[pltName] = plt.figure(2)
 
 
     # mag_modular graph data
 
-    plt.figure(3)
-    fig = plt.gcf()
-    ax = fig.gca()
-    ax.ticklabel_format(useOffset=False, style='sci')
-    ax.get_yaxis().set_major_formatter(plt.FuncFormatter(lambda x, loc: "{:,}".format(int(x))))
-    for idx in range(3):
-        plt.plot(timeAxis, magData[:, idx] *1e9,
-                 color=unitTestSupport.getLineColor(idx, 3),
-                 label=r'$B\_N_{' + str(idx) + '}$')
-    plt.legend(loc='lower right')
-    plt.xlabel('Time [hours]')
-    plt.ylabel('Magnetic Field [nT]')
-    pltName = filename + "3"
-    figureList[pltName] = plt.figure(3)
+    #plt.figure(3)
+    #fig = plt.gcf()
+    #ax = fig.gca()
+    #ax.ticklabel_format(useOffset=False, style='sci')
+    #ax.get_yaxis().set_major_formatter(plt.FuncFormatter(lambda x, loc: "{:,}".format(int(x))))
+    #for idx in range(3):
+        #plt.plot(timeAxis, magData[:, idx] *1e9,
+                 #color=unitTestSupport.getLineColor(idx, 3),
+                 #label=r'$B\_N_{' + str(idx) + '}$')
+    #plt.legend(loc='lower right')
+    #plt.xlabel('Time [hours]')
+    #plt.ylabel('Magnetic Field [nT]')
+    #pltName = filename + "3"
+    #figureList[pltName] = plt.figure(3)
 
-    if show_plots:
-        plt.show()
-    plt.close("all")
+    #if show_plots:
+        #plt.show()
+    #plt.close("all")
 
-    return figureList
+    #return figureList
+    return all_data
 
 
 
@@ -287,8 +291,8 @@ if __name__ == "__main__":
     rI = [16.50e7, 71145.23, 457069.94,
         71145.23, 15.96e7, 310717.76,
         457069.94, 310717.76, 65.18e6]
-
-    run(
+    
+    output = run(
         True,  # show_plots
         False,  # livestream
         step_time = 1.0,
@@ -300,3 +304,4 @@ if __name__ == "__main__":
         init_ang_vel = init_ang_velocity,
         init_timestring = timeInitString
     )
+    print(output)
