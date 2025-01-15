@@ -4,13 +4,13 @@ import random
 import time
 from multiprocessing import Process, Pipe, Manager
 import parse_tle
-
+import serial
 from Rose_Sim import run
 
 sat_data = parse_tle.Tle("tle.txt")
 sat_data._parse_tle()
 
-def random_list(conn, shared_data, lower, upper, num_nums_1, num_nums_2):
+def all_data(conn, shared_data):
     # initial simulation
     timeInitString = str(sat_data.epoch)
     #timeInitString = '2025 MAY 04 07:47:48.965 (UTC)'
@@ -46,18 +46,37 @@ def random_list(conn, shared_data, lower, upper, num_nums_1, num_nums_2):
 
     print("Simulation Done")
 
-    while True:
-        print("This process is still running")
-        time.sleep(1)
+
+def solar_data(conn, shared_data):
+    output_numbers = conn.recv()
+        
+    ser = serial.Serial(
+        port= '/dev/ttyUSB1',
+        baudrate=115200
+        )
+
+    for the_line in shared_data:
+        print(the_line[3])
+        print(the_line[4])
+        ser.write()
+        time.sleep(1) #seconds to pause (ONLY OUTPUT)
+
+    ser.close()
 
 
 
+def magne_data(conn, shared_data):
+    output_numbers = conn.recv()
+        
+    for the_line in shared_data:
+        print(the_line)
+        time.sleep(1) #seconds to pause (ONLY OUTPUT)
 
 def time_print(conn, shared_data):
     output_numbers = conn.recv()
 
-    for num in shared_data:
-        print(num)
+    for the_line in shared_data:
+        print(the_line)
         time.sleep(1) #seconds to pause (ONLY OUTPUT)
 
 
@@ -70,14 +89,14 @@ if __name__ == "__main__":
         shared_data = manager.list()
 
         # do it for the list
-        process_1 = Process(target=random_list, args=(send_conn, shared_data, 1, 100, 3, 7))
-        process_2 = Process(target=time_print, args=(recv_conn, shared_data))
+        sim_process = Process(target=all_data, args=(send_conn, shared_data))
+        sim_target = Process(target=solar_data, args=(recv_conn, shared_data))
 
-        process_1.start()
-        process_2.start()
+        sim_process.start()
+        sim_target.start()
         
         # wait
         #process_1.join()
-        process_2.join()
+        sim_target.join()
         
         
