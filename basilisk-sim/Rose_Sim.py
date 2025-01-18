@@ -172,10 +172,11 @@ def run(show_plots, livestream, step_time, stop_time, rI, init_pos, init_vel, in
 
     # Position and Time
     posData = satLog.r_BN_N
-    timeAxis = satLog.times() * macros.NANO2HOUR
+    timeAxis = satLog.times() * macros.NANO2SEC
+    new_timeAxis = timeInitString + timeAxis
 
     # Magnetic Field
-    magData = magLog.magField_N
+    magData = magLog.magField_N 
 
     # Solar
     eclipseData = eclipseLog.shadowFactor
@@ -188,7 +189,7 @@ def run(show_plots, livestream, step_time, stop_time, rI, init_pos, init_vel, in
 
     sun_data = [["time","sun_exposure", "x+", "x-", "y+", "y-", "z+", "z-"]]
     for ii in range(len(timeAxis)):
-        sun_data.append([float(timeAxis[ii])] + [float(eclipseData[ii])] + [direction[ii] for direction in sunData.values()])
+        sun_data.append([float(new_timeAxis[ii])] + [float(eclipseData[ii])] + [direction[ii] for direction in sunData.values()])
     with open('sun.csv', 'w') as fd:
         for line in sun_data:
             fd.write(",".join([str(thing) for thing in line]) + "\n")
@@ -216,10 +217,10 @@ def run(show_plots, livestream, step_time, stop_time, rI, init_pos, init_vel, in
     time_ns = satLog.times()
 
     time_ns = satLog.times()
-    time_ns_m = time_ns * macros.NANO2HOUR
+    time_ns_m = time_ns * macros.NANO2SEC
 
     tvec = satLog.times()
-    tvec = tvec * macros.NANO2HOUR
+    tvec = tvec * macros.NANO2SEC
 
     #   Plot the power states
     figureList = {}
@@ -304,4 +305,4 @@ if __name__ == "__main__":
         init_ang_vel = init_ang_velocity,
         init_timestring = timeInitString
     )
-    print(output)
+    print(output[:5])

@@ -51,7 +51,7 @@ def solar_data(conn, shared_data):
     output_numbers = conn.recv()
         
     ser = serial.Serial(
-        port= '/dev/ttyUSB1',
+        port= '/dev/ttyALM0',
         baudrate=115200
         )
 
