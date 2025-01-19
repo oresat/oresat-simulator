@@ -1,4 +1,6 @@
 {
+	"tle1" = "",
+	"tle2" = "",
 	"/dev/ttyACM0": 3,
 	"/dev/ttyACM1": 4
 }
