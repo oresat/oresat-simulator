@@ -2,11 +2,15 @@
 import inspect
 import os
 import json
+import time
 
 import numpy as np
 from matplotlib import pyplot as plt
 import parse_tle
 import argparse
+
+from datetime import datetime
+from sgp4.api import Satrec, jday
 
 filename = inspect.getframeinfo(inspect.currentframe()).filename
 path = os.path.dirname(os.path.abspath(filename))
@@ -47,7 +51,7 @@ sat_data._parse_tle()
 
 
 
-def run(show_plots, livestream, step_time, stop_time, rI, init_pos, init_vel, init_att, init_ang_vel, init_timestring):
+def run(show_plots, livestream, step_time, stop_time, rI, init_pos, init_vel, init_att, init_ang_vel, init_timestring, init_epoch):
     """
     The scenarios can be run with the followings setups parameters:
 
@@ -173,7 +177,6 @@ def run(show_plots, livestream, step_time, stop_time, rI, init_pos, init_vel, in
     # Position and Time
     posData = satLog.r_BN_N
     timeAxis = satLog.times() * macros.NANO2SEC
-    new_timeAxis = timeInitString + timeAxis
 
     # Magnetic Field
     magData = magLog.magField_N 
@@ -185,11 +188,13 @@ def run(show_plots, livestream, step_time, stop_time, rI, init_pos, init_vel, in
     #storageData = pmLog.storageLevel
     #netData = pmLog.currentNetPower
 
+    epoch_timestamp = [int(i_dont_care + init_epoch) for i_dont_care in timeAxis]
+
     sunData = { direction:[float(reading) for reading in sunLog.OutputData] for direction,sunLog in sun_logs.items() }
 
     sun_data = [["time","sun_exposure", "x+", "x-", "y+", "y-", "z+", "z-"]]
     for ii in range(len(timeAxis)):
-        sun_data.append([float(new_timeAxis[ii])] + [float(eclipseData[ii])] + [direction[ii] for direction in sunData.values()])
+        sun_data.append([float(timeAxis[ii])] + [float(eclipseData[ii])] + [direction[ii] for direction in sunData.values()])
     with open('sun.csv', 'w') as fd:
         for line in sun_data:
             fd.write(",".join([str(thing) for thing in line]) + "\n")
@@ -201,9 +206,9 @@ def run(show_plots, livestream, step_time, stop_time, rI, init_pos, init_vel, in
         for line in mag_data:
             fd.write(",".join([str(thing) for thing in line]) + "\n")
 
-    all_data = [["time","sun_exposure", "x+", "x-", "y+", "y-", "z+", "z-","mag_x", "mag_y", "mag_z"]]
-    for ii in range(len(timeAxis)):
-        all_data.append([float(timeAxis[ii])]+ [float(eclipseData[ii])] + [direction[ii] for direction in sunData.values()] + [float(magd) for magd in magData[ii]])
+    all_data = {"Header":["time","sun_exposure", "sun_x+", "sun_x-", "sun_y+", "sun_y-", "sun_z+", "sun_z-","mag_x", "mag_y", "mag_z"]}
+    for ii in range(len(epoch_timestamp)):
+        all_data.update({ epoch_timestamp[ii]: [float(eclipseData[ii])] + [direction[ii] for direction in sunData.values()] + [float(magd) for magd in magData[ii]]})
 
     #temp_data = [["time", "mag_x", "mag_y", "mag_z", "is_eclipsed"]]
     #for ii in range(len(timeAxis)):
@@ -282,16 +287,35 @@ def run(show_plots, livestream, step_time, stop_time, rI, init_pos, init_vel, in
 # stand-alone python script
 #
 if __name__ == "__main__":
-    
+
+    now = datetime.now()
+    jd, fr = jday(now.year, now.month, now.day, now.hour, now.minute, now.second)
+
+    with open("tle.txt", "r") as fd:
+        lines = fd.readlines()
+        tle1 = lines[0]
+        tle2 = lines[1]
+
+    satellite = Satrec.twoline2rv(tle1, tle2)
+    e, r, v= satellite.sgp4(jd, fr)
+
+    init_position = [element*1000 for element in r]
+    init_velocity = [element*1000 for element in v]
+
+    print(r)
+    print(v)
+
+
     timeInitString = str(sat_data.epoch)
     #timeInitString = '2025 MAY 04 07:47:48.965 (UTC)'
-    init_position = [-4963946.392216118, 4601467.815050239, -1311445.5818653065]
-    init_velocity = [1731.502687329283, -238.55435888532116, -7398.92444558897] 
+    #init_position = [-4963946.392216118, 4601467.815050239, -1311445.5818653065]
+    #init_velocity = [1731.502687329283, -238.55435888532116, -7398.92444558897] 
     init_MRP_attitude = [[0.1], [0.2], [-0.3]]  # sigma_BN_B
     init_ang_velocity = [[0.05], [-0.1], [0.05]]
     rI = [16.50e7, 71145.23, 457069.94,
         71145.23, 15.96e7, 310717.76,
         457069.94, 310717.76, 65.18e6]
+    init_epoch = int(time.time())
     
     output = run(
         True,  # show_plots
@@ -303,6 +327,8 @@ if __name__ == "__main__":
         init_vel = init_velocity,
         init_att = init_MRP_attitude,
         init_ang_vel = init_ang_velocity,
-        init_timestring = timeInitString
+        init_timestring = timeInitString,
+        init_epoch = init_epoch
+
     )
     print(output[:5])
