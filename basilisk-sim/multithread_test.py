@@ -124,14 +124,17 @@ def solar_data(conn, shared_data):
             if has_serial:
                 ser.write((str(value_to_send) + "\n").encode("utf-8"))
 
-    except e:
-        print("An error occured", e)
+    except:
+        print("\n\nAn error occured")
     finally:
+        print("\n\nClosing the simulator")
         if has_serial:
             ser.write("0\n".encode("utf-8"))
-            print("Attempted to turn off solar simulator")
+            print("\n\nAttempted to turn off solar simulator")
             ser.close()
-            print("Closed serial")
+            print("\n\nClosed serial")
+
+        print("\n\nSimulator finished\n\n")
 
 
 
