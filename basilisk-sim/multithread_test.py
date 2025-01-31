@@ -82,13 +82,19 @@ def all_data(conn, shared_data):
 def solar_data(conn, shared_data):
     output_numbers = conn.recv()
         
-    ser = serial.Serial(
-      port= '/dev/ttyACM0',
-       )
+    #ser = serial.Serial(
+      #port= '/dev/ttyACM0',
+      #baudrate = 115200
+       #)
+
+    header = shared_data["header"]
+    print(shared_data["header"])
 
     while True:
         wait_time = 1 - (time.time() % 1)
         time.sleep(wait_time)
+
+
 
         epoch = time.time()
         my_list = shared_data.get(int(epoch))
@@ -99,16 +105,20 @@ def solar_data(conn, shared_data):
         
         print(epoch, my_list)
 
+        column_num = header.index("sun_x+")
+        print("column number: ", column_num)
         #print(epoch)
         #print(int(epoch))
         #print(the_line[3])
         #print(the_line[4])
-        ser.write(my_list[3])
+        value_to_send = int(100 * my_list[column_num])
+        print("value to send: ", value_to_send)
+        #ser.write(value_to_send)
         #time.sleep(1) #seconds to pause (ONLY OUTPUT)
 
 
 
-    ser.close()
+    #ser.close()
 
 
 
