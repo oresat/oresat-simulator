@@ -46,50 +46,16 @@ def get_init_parameters(tle_filename, shift_seconds=0):
 
 
 
-def all_data(conn, shared_data, shift_seconds=0):
+
+def all_data(conn, shared_data, sim_params, shift_seconds=0):
     """
     Parameters:
         conn: object for communicating with another node
         shared_data: mulithreaded server dictionary object
+        sim_params: a keyword dictionary to pass to the simulator 
         shift_seconds: number of seconds to shift the simulation
     """
-    with open("tle.txt", "r") as fd:
-        lines = fd.readlines()
-        tle1 = lines[0]
-        tle2 = lines[1]
-
-    start_time = datetime.now() + timedelta(seconds=shift_seconds)
-    jd, fr = jday(start_time.year, start_time.month, start_time.day, start_time.hour, start_time.minute, start_time.second)
-    timeInitString = str(start_time.isoformat())
-    init_epoch = int(time.time() + shift_seconds)
-
-    # get initial position and velocity
-    satellite = Satrec.twoline2rv(tle1, tle2)
-    e, r, v= satellite.sgp4(jd, fr)
-    # earth's radius is nearly 6360 km, position and velocity are in meters
-    init_position = [element*1000 for element in r]
-    init_velocity = [element*1000 for element in v]
-
-
-    init_MRP_attitude = [[0.1], [0.2], [-0.3]]  # sigma_BN_B
-    init_ang_velocity = [[0.05], [-0.1], [0.05]]
-    rI = [16.50e7, 71145.23, 457069.94,
-        71145.23, 15.96e7, 310717.76,
-        457069.94, 310717.76, 65.18e6]
-
-    sim_output = run(      
-        True,  # show_plots
-        False,  # livestream
-        step_time = 1.0,
-        stop_time = 60.0,
-        rI = rI,
-        init_pos = init_position,
-        init_vel = init_velocity,
-        init_att = init_MRP_attitude,
-        init_ang_vel = init_ang_velocity,
-        init_timestring = timeInitString,
-        init_epoch = init_epoch)
-    
+    sim_output = run(**sim_params)
     
     # add initial simulation to memory
     shared_data.update(sim_output)
@@ -99,6 +65,8 @@ def all_data(conn, shared_data, shift_seconds=0):
 
     # start other simulations
     print("Simulation Done")
+
+
 
 
 def solar_data(conn, shared_data, shift_seconds=0):
@@ -172,13 +140,18 @@ def time_print(conn, shared_data):
 
 
 
-
 if __name__ == "__main__":
     with Manager() as manager:
         send_conn, recv_conn = Pipe()
 
         shared_data = manager.dict()
 
+        sat_state = {"init_att": [[0.1], [0.2], [-0.3]],
+                     "init_ang_vel": [[0.05], [-0.1], [0.05]],
+                     "rI": [16.50e7, 71145.23, 457069.94,
+                            71145.23, 15.96e7, 310717.76,
+                            457069.94, 310717.76, 65.18e6]
+                     }
         init_MRP_attitude = [[0.1], [0.2], [-0.3]]  # sigma_BN_B
         init_ang_velocity = [[0.05], [-0.1], [0.05]]
         rI = [16.50e7, 71145.23, 457069.94,
@@ -189,19 +162,27 @@ if __name__ == "__main__":
         sun_fastforward = True
         sim_shift_seconds = 0
         if sun_fastforward:
+            sun_ff_params = {"show_plots": False,
+                             "livestream": False,
+                             "step_time": 1,
+                             "stop_time": 60*90}
+
+            sun_ff_params.update(sat_state)
             sun_ff_init_params = get_init_parameters(tle_filename="tle.txt", shift_seconds=0)
 
-            sun_ff_params = {"show_plots": False,
-                    "livestream": False,
-                    "step_time": 1,
-                    "stop_time": 60*90,
-                    "rI": rI,
-                    "init_pos": sun_ff_init_params["init_pos"],
-                    "init_vel": sun_ff_init_params["init_vel"],
-                    "init_att": init_MRP_attitude,
-                    "init_ang_vel": init_ang_velocity,
-                    "init_timestring": sun_ff_init_params["init_timestring"],
-                    "init_epoch": sun_ff_init_params["init_epoch"]}
+            sun_ff_params.update(sun_ff_init_params)
+            
+            #sun_ff_params = {"show_plots": False,
+            #        "livestream": False,
+            #        "step_time": 1,
+            #        "stop_time": 60*90,
+            #        "rI": rI,
+            #        "init_pos": sun_ff_init_params["init_pos"],
+            #        "init_vel": sun_ff_init_params["init_vel"],
+            #        "init_att": init_MRP_attitude,
+            #        "init_ang_vel": init_ang_velocity,
+            #        "init_timestring": sun_ff_init_params["init_timestring"],
+            #        "init_epoch": sun_ff_init_params["init_epoch"]}
 
             sun_ff_output = run(**sun_ff_params)
 
@@ -223,8 +204,24 @@ if __name__ == "__main__":
 
 
         print("\nShifting simulation by", sim_shift_seconds, "seconds.\n")
+        
+        sim_init_params = get_init_parameters(tle_filename="tle.txt", shift_seconds=sim_shift_seconds)
+
+        sim_params = {"show_plots": False,
+                      "livestream": False,
+                      "step_time": 1,
+                      "stop_time": 60,
+                      "rI": rI,
+                      "init_pos": sim_init_params["init_pos"],
+                      "init_vel": sim_init_params["init_vel"],
+                      "init_att": init_MRP_attitude,
+                      "init_ang_vel": init_ang_velocity,
+                      "init_timestring": sim_init_params["init_timestring"],
+                      "init_epoch": sim_init_params["init_epoch"]}
+
+
         # do it for the list
-        sim_process = Process(target=all_data, args=(send_conn, shared_data, sim_shift_seconds))
+        sim_process = Process(target=all_data, args=(send_conn, shared_data, sim_params, sim_shift_seconds))
         sim_target = Process(target=solar_data, args=(recv_conn, shared_data, sim_shift_seconds))
 
         sim_process.start()
