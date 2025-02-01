@@ -51,7 +51,7 @@ sat_data._parse_tle()
 
 
 
-def run(show_plots, livestream, step_time, stop_time, rI, init_pos, init_vel, init_att, init_ang_vel, init_timestring, init_epoch, gs_pos):
+def run(show_plots, livestream, step_time, stop_time, rI, init_pos, init_vel, init_att, init_ang_vel, init_timestring, init_epoch):
     """
     The scenarios can be run with the followings setups parameters:
 
@@ -329,7 +329,5 @@ if __name__ == "__main__":
         init_ang_vel = init_ang_velocity,
         init_timestring = timeInitString,
         init_epoch = init_epoch
-        gs_pos = [-2417635.583508165, -3768603.603140284, 4527222.183170093] #ground station position vector in m
-
     )
     print(output[:5])
