@@ -212,6 +212,7 @@ def get_fastforward_epoch(tle_filename, sat_rotational_state, sim_duration,
             if check_epoch == "header":
                 continue
 
+
             passed_checks_so_far = True
             # check if the current epoch passes all tests
             for test_func in test_functions:
@@ -231,7 +232,7 @@ def get_fastforward_epoch(tle_filename, sat_rotational_state, sim_duration,
 
 def check_in_sun(sim_data, check_epoch):
     """Checks if it is in the sun for 5 minutes"""
-    sun_column = (sim_data["header"]).index("sun_exposure")
+    sun_index = (sim_data["header"]).index("sun_exposure")
 
     num_consecutive_secs = 300 # 5 min
     total = 0
@@ -240,23 +241,28 @@ def check_in_sun(sim_data, check_epoch):
         lookup = int(check_epoch) + shift_seconds
         instance_data = sim_data.get(lookup)
         if instance_data is not None:
-            total += instance_data[sun_column]
+            total += instance_data[sun_index]
 
     return total / num_consecutive_secs >= 1.0
 
 
-def check_in_attenuation(sim_data, check_epoch):
+def check_in_range(sim_data, check_epoch):
     """Checks if it is within range for 5 minutes"""
+    pos_indicies = [sim_data["header"].index(column_name) for column_name in ["pos_x", "pos_y", "pos_z"]]
 
-    num_consecutive_secs = 300 # 5 min
-    req_distance = 1000000 # must be within 1000 km
+    num_consecutive_secs = 10 # 10 s
+    gs_position = [-2417635.58, -3768603.60, 4527222.18]
+    req_distance = 5000000 # must be within 1000 km
 
     for shift_seconds in range(num_consecutive_secs):
         lookup = int(check_epoch) + shift_seconds
         instance_data = sim_data.get(lookup)
         if instance_data is not None:
-            # calculate the distance
-            pass
+            sat_position = [instance_data[index] for index in pos_indicies]
+            distance = (sum([(sat_position[ii] - gs_position[ii])**2 for ii in range(3)]))**0.5
+
+            if distance > req_distance:
+                return False
 
     return True
 
@@ -283,10 +289,10 @@ if __name__ == "__main__":
 
             blah = get_fastforward_epoch(tle_filename="tle.txt", 
                                          sat_rotational_state=sat_rotational_state, 
-                                         sim_duration=60*20,
+                                         sim_duration=60*60*6,
                                          overlap=60*5,
-                                         iterations=10, #
-                                         test_functions = [check_in_sun])
+                                         iterations=100, #
+                                         test_functions = [check_in_range])
 
             print("\n\nshift seconds into the future: ", blah, "\n\n")
             if blah < 0:
