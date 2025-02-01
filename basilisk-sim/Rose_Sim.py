@@ -6,7 +6,7 @@ import time
 
 import numpy as np
 from matplotlib import pyplot as plt
-import parse_tle
+# import parse_tle
 import argparse
 
 from datetime import datetime
@@ -46,8 +46,8 @@ fileName = os.path.basename(os.path.splitext(__file__)[0])
 import basilisk_wrapper
 
 # Importing our TLE textfile
-sat_data = parse_tle.Tle("tle.txt")
-sat_data._parse_tle()
+#sat_data = parse_tle.Tle("tle.txt")
+#sat_data._parse_tle()
 
 
 
@@ -292,6 +292,8 @@ def run(show_plots, livestream, step_time, stop_time, rI, init_pos, init_vel, in
 if __name__ == "__main__":
 
     now = datetime.now()
+    timeInitString = str(now.isoformat())
+    init_epoch = int(time.time())
     jd, fr = jday(now.year, now.month, now.day, now.hour, now.minute, now.second)
 
     with open("tle.txt", "r") as fd:
@@ -309,10 +311,6 @@ if __name__ == "__main__":
     print(v)
 
 
-    timeInitString = str(sat_data.epoch)
-    #timeInitString = '2025 MAY 04 07:47:48.965 (UTC)'
-    #init_position = [-4963946.392216118, 4601467.815050239, -1311445.5818653065]
-    #init_velocity = [1731.502687329283, -238.55435888532116, -7398.92444558897] 
     init_MRP_attitude = [[0.1], [0.2], [-0.3]]  # sigma_BN_B
     init_ang_velocity = [[0.05], [-0.1], [0.05]]
     rI = [16.50e7, 71145.23, 457069.94,
@@ -333,4 +331,4 @@ if __name__ == "__main__":
         init_timestring = timeInitString,
         init_epoch = init_epoch
     )
-    print(output[:5])
+    # print(output)
