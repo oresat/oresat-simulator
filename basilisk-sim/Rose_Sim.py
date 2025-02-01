@@ -206,9 +206,12 @@ def run(show_plots, livestream, step_time, stop_time, rI, init_pos, init_vel, in
         for line in mag_data:
             fd.write(",".join([str(thing) for thing in line]) + "\n")
 
-    all_data = {"header":["time","sun_exposure", "sun_x+", "sun_x-", "sun_y+", "sun_y-", "sun_z+", "sun_z-","mag_x", "mag_y", "mag_z"]}
+    all_data = {"header":["pos_x", "pos_y", "pos_z", "sun_exposure", "sun_x+", "sun_x-", "sun_y+", "sun_y-", "sun_z+", "sun_z-","mag_x", "mag_y", "mag_z"]}
     for ii in range(len(epoch_timestamp)):
-        all_data.update({ epoch_timestamp[ii]: [float(eclipseData[ii])] + [direction[ii] for direction in sunData.values()] + [float(magd) for magd in magData[ii]]})
+        all_data.update({ epoch_timestamp[ii]: [float(axis) for axis in posData[ii]]
+                         + [float(eclipseData[ii])] 
+                         + [direction[ii] for direction in sunData.values()] 
+                         + [float(magd) for magd in magData[ii]]})
 
     #temp_data = [["time", "mag_x", "mag_y", "mag_z", "is_eclipsed"]]
     #for ii in range(len(timeAxis)):

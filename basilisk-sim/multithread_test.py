@@ -207,7 +207,7 @@ if __name__ == "__main__":
 
             sim_shift_seconds = 0
             for check_epoch in sun_ff_output.keys():
-                sun_column = 0
+                sun_column = (sun_ff_output["header"]).index("sun_exposure")
                 if check_epoch == "header":
                     continue
 
