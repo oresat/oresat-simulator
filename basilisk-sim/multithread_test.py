@@ -111,7 +111,6 @@ def solar_data(conn, shared_data, shift_seconds=0):
     except:
         print("Failed to connect to serial, will only print numbers to terminal.")
 
-
     header = shared_data["header"]
     print(shared_data["header"])
     if has_serial:

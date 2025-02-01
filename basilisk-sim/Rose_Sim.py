@@ -329,6 +329,5 @@ if __name__ == "__main__":
         init_ang_vel = init_ang_velocity,
         init_timestring = timeInitString,
         init_epoch = init_epoch
-
     )
     print(output[:5])
