@@ -175,6 +175,8 @@ def groundstation_data(init_barrier, shared_data, shift_seconds):
 
 
 
+
+
 def get_fastforward_epoch(tle_filename, sat_rotational_state, sim_duration, 
                           overlap, iterations, test_functions):
     """Function for calculating how much to fast forward
@@ -183,50 +185,57 @@ def get_fastforward_epoch(tle_filename, sat_rotational_state, sim_duration,
         tle_filename: filename where tle is stored
         sat_rotational_state: dictionary with init_att, init_ang_vel, and rI for simulations.
         sim_duration: number of seconds to simulate into the future at a time, maybe 1 hour or 3600 seconds.
-        overlap: number of seconds to overlap each iteration, maybe 10 minutes or 600 seconds.
+        overlap: number of seconds to overlap each iteration, maybe 10 minutes or 600 seconds. Should be sufficient for all test functions
         iterations: number of iterations, skipping seconds_into_future - seconds_to_overlap at a time.
         functions: list of functions which accept:
             sim_data: simulation data
             check_epoch: starting epoch to check from
     """
+    for iteration in range(iterations):
 
-    ff_init_params = get_init_parameters(tle_filename="tle.txt", shift_seconds=0)
-    ff_params = {"show_plots": False,
-                "livestream": False,
-                "step_time": 1,
-                "stop_time": sim_duration}
-    ff_params.update(sat_rotational_state)
-    ff_params.update(ff_init_params)
-            
-    ff_output = run(**ff_params)
+        # slightly inaccurate if there are a lot of simulations to do
+        big_shift_seconds = (sim_duration - overlap)*iteration
+        print("iteration", iteration, "shifted_seconds", big_shift_seconds)
 
-    sim_shift_seconds = 0
-    for check_epoch in ff_output.keys():
-        if check_epoch == "header":
-            continue
-        
+        ff_init_params = get_init_parameters(tle_filename="tle.txt", shift_seconds=big_shift_seconds)
+        ff_params = {"show_plots": False,
+                    "livestream": False,
+                    "step_time": 1,
+                    "stop_time": sim_duration}
+        ff_params.update(sat_rotational_state)
+        ff_params.update(ff_init_params)
+                
+        ff_output = run(**ff_params)
 
-        passed_checks_so_far = True
-        # check if the current epoch passes all tests
-        for test_func in test_functions:
-            passed_checks_so_far = test_func(ff_output, check_epoch)
-            # if it does not pass one, just skip checking the rest
-            if not passed_checks_so_far:
+        sim_shift_seconds = 0
+        for check_epoch in ff_output.keys():
+            if check_epoch == "header":
                 continue
-        
-        if passed_checks_so_far:
-            sim_shift_seconds = int(check_epoch - time.time() + 1)
-            break
 
-    return sim_shift_seconds
+            passed_checks_so_far = True
+            # check if the current epoch passes all tests
+            for test_func in test_functions:
+                passed_checks_so_far = test_func(ff_output, check_epoch)
+                # if it does not pass one, just skip checking the rest
+                if not passed_checks_so_far:
+                    continue
+            
+            if passed_checks_so_far:
+                sim_shift_seconds = int(check_epoch - time.time() + 1)
+                return sim_shift_seconds
+                break
+
+    return int(-1)
 
 
 
 def check_in_sun(sim_data, check_epoch):
+    """Checks if it is in the sun for 5 minutes"""
     sun_column = (sim_data["header"]).index("sun_exposure")
 
-    num_consecutive_secs = 300
+    num_consecutive_secs = 300 # 5 min
     total = 0
+
     for shift_seconds in range(num_consecutive_secs):
         lookup = int(check_epoch) + shift_seconds
         instance_data = sim_data.get(lookup)
@@ -236,6 +245,20 @@ def check_in_sun(sim_data, check_epoch):
     return total / num_consecutive_secs >= 1.0
 
 
+def check_in_attenuation(sim_data, check_epoch):
+    """Checks if it is within range for 5 minutes"""
+
+    num_consecutive_secs = 300 # 5 min
+    req_distance = 1000000 # must be within 1000 km
+
+    for shift_seconds in range(num_consecutive_secs):
+        lookup = int(check_epoch) + shift_seconds
+        instance_data = sim_data.get(lookup)
+        if instance_data is not None:
+            # calculate the distance
+            pass
+
+    return True
 
 
 if __name__ == "__main__":
@@ -260,12 +283,15 @@ if __name__ == "__main__":
 
             blah = get_fastforward_epoch(tle_filename="tle.txt", 
                                          sat_rotational_state=sat_rotational_state, 
-                                         sim_duration=60*90,
-                                         overlap=60,
-                                         iterations=4, #
+                                         sim_duration=60*20,
+                                         overlap=60*5,
+                                         iterations=10, #
                                          test_functions = [check_in_sun])
 
-            print("shift seconds into the future: ", blah)
+            print("\n\nshift seconds into the future: ", blah, "\n\n")
+            if blah < 0:
+                print("Failed to find instance, please increase the number of iterations\n")
+                exit()
             sim_shift_seconds = blah
 
 
