@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 from multiprocessing import Process, Pipe, Manager, Barrier
 import subprocess
 
+import argparse
+
 import serial
 from sgp4.api import Satrec, jday
 
@@ -47,7 +49,6 @@ def get_init_parameters(tle_filename, shift_seconds=0):
 
 
 
-
 def all_data(init_barrier, shared_data, sim_params, shift_seconds=0):
     """
     Parameters:
@@ -56,26 +57,74 @@ def all_data(init_barrier, shared_data, sim_params, shift_seconds=0):
         sim_params: a keyword dictionary to pass to the simulator 
         shift_seconds: number of seconds to shift the simulation
     """
+
+    # make list of epochs in the future
+    duration = sim_params['stop_time']
+
+    ## by the hour epochs
+    #init_run_time = time.time()
+    #end_time = init_run_time + duration
+
+    #hourly_epochs = [init_run_time i*3600 for i in range(int(duration/3600))]
+
+
+    #first_sim_done = False
+    #for next_epoch, nth_sim in enumerate(hourly_epochs):
+    #    sim_params['stop_time'] = min([end_time - next_epoch, 3600])
+
+    #    local_shift_seconds = next_epoch - time.time()
+    #    total_shift_seconds = local_shift_seconds + shift_seconds
+
+    #    get_init_parameters(tle_filename='tle.txt', shift_seconds=total_shift_seconds)
+
+    if duration > 12*3600:
+        print("this simulation may take a long time, finishing simulation for first 24 hours (typically 15 seconds)")
+        sim_params['stop_time'] = 24*3600
+
+    test1 = time.time()
+    # if simulation is less than
     sim_output = run(**sim_params)
+    test2 = time.time()
+    
+    print("It took ", test2 - test1, "seconds to simulate 24 hours")
     
     # add initial simulation to memory
     shared_data.update(sim_output)
+    test3 = time.time()
 
+    print("It took ", test3 - test2, "seconds to share that data between threads")
     # let the other process know to start
     # conn.send("initial simulation ready")
     init_barrier.wait()
     
     # start other simulations
+    if duration > 12*3600:
+        # at some point learn to pick up where simulation had left off, or how to do it in chunks
+        print("\n\nSimulation of first 24 hours done. Simulating the rest...\n\n")
+        sim_params['stop_time'] = duration
+
+        # if simulation is less than
+        sim_output = run(**sim_params)
+        # add initial simulation to memory
+        shared_data.update(sim_output)
+
+        print("###############################################\n"*5)
+        print("SIMULATION AQUIRED FOR ENTIRE REQUESTED DURATION\n")
+        print("###############################################\n"*5)
+
+
     print("Simulation Done")
 
 
 
 def run_vizard_livestream(init_barrier, shared_data, sim_params, shift_seconds=0):
 
-
     init_barrier.wait()
     sim_params["livestream"] = True
 
+    sim_init_params = get_init_parameters(tle_filename="tle.txt", shift_seconds=sim_shift_seconds)
+    sim_params.update(sim_init_params)
+        
     run(**sim_params)
 
 
@@ -99,14 +148,12 @@ def run_vizard_file(init_barrier, shared_data, shift_seconds):
         # find the data at the timestamp
         epoch = time.time()
         sim_time = int(epoch) + int(shift_seconds) - int(shared_data.keys()[1])
-        print("VIZARD: sim time (s):", sim_time)
-        print("VIZARD: epoch:", epoch)
-        print("VIZARD: epoch + shift:", str(epoch + shift_seconds))
+        print("TIMING: sim time (s):", sim_time)
+        print("TIMING: epoch:", epoch)
+        print("TIMING: epoch + shift:", str(epoch + shift_seconds))
 
         time.sleep(0.2)
         print("\n")
-
-
 
 
 
@@ -161,7 +208,7 @@ def solar_data(init_barrier, shared_data, shift_seconds=0, intensity_cap=50):
                 break
             
             # print(epoch, my_list)
-            column_index = header.index("sun_z+")
+            column_index = header.index("sun_x+")
             # print("SUN: column index", column_index)
             value_to_send = int(100*my_list[column_index])
             value_to_send = value_to_send if value_to_send < intensity_cap else intensity_cap
@@ -247,6 +294,9 @@ def groundstation_data(init_barrier, shared_data, shift_seconds):
 
 
 
+################################################################
+### FUNCTIONS FOR FAST FORWARDING
+################################################################
 
 def get_fastforward_epoch(tle_filename, sat_rotational_state, sim_duration, 
                           overlap, iterations, test_functions):
@@ -357,10 +407,49 @@ def check_in_range(sim_data, check_epoch):
     return True
 
 
+
+
+
+
+# MAIN SCRIPT
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('-d', '--days', type=float,
+                        help='number of days to run the simulation.\nYou may pass a decimal value, it will be rounded to the nearest second')
+
+    parser.add_argument('-l', '--livestream', action="store_true",
+                        help='play a livestream video vizard simulation while running')
+
+    parser.add_argument('-f', '--fast-forward', action="store_true",
+                        help='fast forward from now so that the satellite begins the simulation in the sun (for at least 5 minutes)')
+
+    args = parser.parse_args()
+
+    print(args)
+
+
+    sim_time = 60*5 if args.days is None else int(args.days * 60*60*24)
+
+    if args.days is None:
+        print("No simulation duration given (-d flag)")
+    
+    print("Setting simulation time for ", sim_time, "seconds.")
+    
+    num_threads = 4
+
+    if args.livestream:
+        # increase number of threads for livestream
+        print("Enabling vizard livestream")
+        num_threads = 5
+    else:
+        print("Vizard livestream disabled")
+
+
+
     with Manager() as manager:
         send_conn, recv_conn = Pipe()
-        init_barrier = Barrier(5)
+        init_barrier = Barrier(num_threads)
 
         shared_data = manager.dict()
 
@@ -371,20 +460,18 @@ if __name__ == "__main__":
                                        457069.94, 310717.76, 65.18e6]
                                 }
         
-
         # if you want to be in the sun, figure how much to shift the data
-        sun_fastforward = True
         sim_shift_seconds = 0
-        if sun_fastforward:
-
+        if args.fast_forward:
+            print("Getting initial simulations to fastforward into the future")
             blah = get_fastforward_epoch(tle_filename="tle.txt", 
                                          sat_rotational_state=sat_rotational_state, 
                                          sim_duration=60*60*6,
                                          overlap=60*5,
-                                         iterations=1000, #
+                                         iterations=10000, #
                                          test_functions = [check_in_sun])
 
-            print("\n\nshift seconds into the future: ", blah, "\n\n")
+            print("\n\nfastforwarding into the future (seconds): ", blah, "\n\n")
             if blah < 0:
                 print("Failed to find instance, the situation may be happening NOW, otherwise please increase the number of iterations\n")
                 print("Setting default shift to zero\n")
@@ -398,23 +485,27 @@ if __name__ == "__main__":
         sim_params = {"show_plots": False,
                       "livestream": False,
                       "step_time": 1,
-                      "stop_time": 600}
+                      "stop_time": sim_time}
         sim_params.update(sim_init_params)
         sim_params.update(sat_rotational_state)
         
         # do it for the list
         sim_process = Process(target=all_data, args=(init_barrier, shared_data, sim_params, sim_shift_seconds))
-        viz_process = Process(target=run_vizard_livestream, args=(init_barrier, shared_data, sim_params, sim_shift_seconds))
+        viz_process = Process(target=run_vizard_livestream, args=(init_barrier, shared_data, sim_params, sim_shift_seconds+15))
         time_process = Process(target=run_vizard_file, args=(init_barrier, shared_data, sim_shift_seconds))
         sun_process = Process(target=solar_data, args=(init_barrier, shared_data, sim_shift_seconds))
         gs_process = Process(target=groundstation_data, args=(init_barrier, shared_data, sim_shift_seconds))
-        # status_process = Process()
+
+        if args.livestream:
+            viz_process = Process(target=run_vizard_livestream, args=(init_barrier, shared_data, sim_params, sim_shift_seconds))
 
         sim_process.start()
-        viz_process.start()
         time_process.start()
         sun_process.start()
         gs_process.start()
+
+        if args.livestream:
+            viz_process.start()
         
         # wait
         #sim_process.join()
