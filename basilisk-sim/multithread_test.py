@@ -3,6 +3,7 @@ import random
 import time
 from datetime import datetime, timedelta
 from multiprocessing import Process, Pipe, Manager, Barrier
+import subprocess
 
 import serial
 from sgp4.api import Satrec, jday
@@ -70,14 +71,61 @@ def all_data(init_barrier, shared_data, sim_params, shift_seconds=0):
 
 
 
+def run_vizard(init_barrier, shared_data, shift_seconds):
 
-def solar_data(init_barrier, shared_data, shift_seconds=0):
+
+    init_barrier.wait()
+    
+    vizard_app_path = "/home/monitor/Vizard_Linux/Vizard.x86_64"
+    vizard_bin_path = "/home/monitor/oresat-simulator/basilisk-sim/_VizFiles/Rose_Sim_UnityViz.bin"
+    vizard_cmd = [vizard_app_path, "-loadFile", vizard_bin_path]
+
+    subprocess.Popen(vizard_cmd)    
+
+
+    while True:
+        # delay until the next second
+        wait_time = 1 -  ((time.time()) % 1)
+        time.sleep(wait_time + 0.1)
+
+        # find the data at the timestamp
+        epoch = time.time()
+        sim_time = int(epoch) + int(shift_seconds) - int(shared_data.keys()[1])
+        print("VIZARD: sim time (s):", sim_time)
+        print("VIZARD: epoch:", epoch)
+        print("VIZARD: epoch + shift:", str(epoch + shift_seconds))
+
+        time.sleep(0.2)
+        print("\n")
+
+
+
+
+
+
+
+def solar_data(init_barrier, shared_data, shift_seconds=0, intensity_cap=50):
     
     has_serial = False
     try:
         ser = serial.Serial(port= '/dev/ttyACM0',baudrate = 115200)
         has_serial = True
-        ser.write(3)
+        
+        # send control c
+        ser.write(b'\x03')
+        time.sleep(1)
+        
+        # send control d 
+        ser.write(b'\x04')
+        time.sleep(1)
+
+        # Accept default settings
+        ser.write('\r\n'.encode())
+        time.sleep(1)
+        
+        # Put into basilisk mode, uses \r for some reason
+        ser.write('3\r'.encode())
+        
     except:
         print("Failed to connect to serial, will only print numbers to terminal.")
 
@@ -98,26 +146,35 @@ def solar_data(init_barrier, shared_data, shift_seconds=0):
             my_list = shared_data.get(int(epoch + shift_seconds))
             
             if my_list is None:
-                print("SUN: ran out of data at ", epoch)
+                print("SOLAR_SIMULATOR: ran out of data at ", epoch)
                 break
             
             # print(epoch, my_list)
-            column_index = header.index("sun_x+")
+            column_index = header.index("sun_z+")
             # print("SUN: column index", column_index)
             value_to_send = int(100*my_list[column_index])
-            print("SUN: value to send", value_to_send)
+            value_to_send = value_to_send if value_to_send < intensity_cap else intensity_cap
+            print("SOLAR_SIMULATOR: value to send (intensity):", value_to_send)
             
             if has_serial:
-                ser.write((str(value_to_send) + "\n").encode("utf-8"))
+                ser.write((str(value_to_send) + "\r").encode("utf-8"))
 
 
     except:
-        print("\n\nAn error occured")
+        print("\n\nSUN: An error occured")
     finally:
         print("\n\nClosing the simulator")
         if has_serial:
+            ser.write("0\r".encode("utf-8"))
+            ser.write("0\n".encode("utf-8"))
+            ser.write("0\r".encode("utf-8"))
             ser.write("0\n".encode("utf-8"))
             print("\n\nAttempted to turn off solar simulator")
+            ser.write("0\r".encode("utf-8"))
+            ser.write("0\n".encode("utf-8"))
+            ser.write("0\r".encode("utf-8"))
+            ser.write("0\n".encode("utf-8"))
+            
             ser.close()
             print("\n\nClosed serial")
         print("\n\nSimulator finished\n\n")
@@ -153,14 +210,14 @@ def groundstation_data(init_barrier, shared_data, shift_seconds):
         my_list = shared_data.get(int(epoch + shift_seconds))
         
         if my_list is None:
-            print("GS: ran out of data at ", epoch)
+            print("GROUND_STATION: ran out of data at ", epoch)
             break
         
         # print(epoch, my_list)
 
         # calculate the distance
         column_index = header.index("sun_x+")
-        print("GS: column index", column_index)
+        # print("GS: column index", column_index)
         value_to_send = int(100*my_list[column_index])
 
         # get the satellite position
@@ -169,7 +226,7 @@ def groundstation_data(init_barrier, shared_data, shift_seconds):
 
         distance = (sum([(sat_position[ii] - gs_position[ii])**2 for ii in range(3)]))**0.5
 
-        print("GS: value to send", distance)
+        print("GROUND_STATION: value to send (distance): ", distance)
         
 
 
@@ -230,6 +287,25 @@ def get_fastforward_epoch(tle_filename, sat_rotational_state, sim_duration,
 
 
 
+
+def check_if_soon_eclipsed(sim_data, check_epoch):
+    """Checks if it is in the sun for 5 minutes"""
+    sun_index = (sim_data["header"]).index("sun_exposure")
+
+    num_consecutive_secs = 600 # 10 min
+    total = 0
+
+    for shift_seconds in range(num_consecutive_secs):
+        lookup = int(check_epoch) + shift_seconds
+        instance_data = sim_data.get(lookup)
+        if instance_data is not None:
+            total += instance_data[sun_index]
+
+    quality = total / num_consecutive_secs  
+    return (quality > 0.3 and quality < 0.7)
+
+
+
 def check_in_sun(sim_data, check_epoch):
     """Checks if it is in the sun for 5 minutes"""
     sun_index = (sim_data["header"]).index("sun_exposure")
@@ -270,7 +346,7 @@ def check_in_range(sim_data, check_epoch):
 if __name__ == "__main__":
     with Manager() as manager:
         send_conn, recv_conn = Pipe()
-        init_barrier = Barrier(3)
+        init_barrier = Barrier(4)
 
         shared_data = manager.dict()
 
@@ -291,13 +367,14 @@ if __name__ == "__main__":
                                          sat_rotational_state=sat_rotational_state, 
                                          sim_duration=60*60*6,
                                          overlap=60*5,
-                                         iterations=100, #
-                                         test_functions = [check_in_range])
+                                         iterations=1000, #
+                                         test_functions = [check_in_sun])
 
             print("\n\nshift seconds into the future: ", blah, "\n\n")
             if blah < 0:
-                print("Failed to find instance, please increase the number of iterations\n")
-                exit()
+                print("Failed to find instance, the situation may be happening NOW, otherwise please increase the number of iterations\n")
+                print("Setting default shift to zero\n")
+                blah = 0
             sim_shift_seconds = blah
 
 
@@ -307,22 +384,25 @@ if __name__ == "__main__":
         sim_params = {"show_plots": False,
                       "livestream": False,
                       "step_time": 1,
-                      "stop_time": 60}
+                      "stop_time": 600}
         sim_params.update(sim_init_params)
         sim_params.update(sat_rotational_state)
         
         # do it for the list
         sim_process = Process(target=all_data, args=(init_barrier, shared_data, sim_params, sim_shift_seconds))
+        viz_process = Process(target=run_vizard, args=(init_barrier, shared_data, sim_shift_seconds))
         sun_process = Process(target=solar_data, args=(init_barrier, shared_data, sim_shift_seconds))
         gs_process = Process(target=groundstation_data, args=(init_barrier, shared_data, sim_shift_seconds))
         # status_process = Process()
 
         sim_process.start()
+        viz_process.start()
         sun_process.start()
         gs_process.start()
         
         # wait
         #sim_process.join()
+        # viz_process.join()
         sun_process.join()
         gs_process.join()
         

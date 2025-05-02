@@ -3,6 +3,7 @@ import inspect
 import os
 import json
 import time
+import subprocess
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -154,13 +155,14 @@ def run(show_plots, livestream, step_time, stop_time, rI, init_pos, init_vel, in
     #   Try and get Vizard to work
     if livestream:
         clockSync = simSynch.ClockSynch()
-        clockSync.accelFactor = (stop_time / 20)
+        clockSync.accelFactor = (stop_time)
         scenarioSim.AddModelToTask(taskName, clockSync)
 
-    vizSupport.enableUnityVisualization(scenarioSim, taskName, scObject,
-                                               saveFile=__file__,
-                                               liveStream=livestream
-                                              )
+        vizSupport.enableUnityVisualization(scenarioSim, taskName, scObject,
+                                            saveFile=__file__,
+                                            liveStream=livestream
+                                            )
+        return
 
     # SIMULATION
     # Need to call the self-init and cross-init methods
@@ -320,7 +322,7 @@ if __name__ == "__main__":
     
     output = run(
         True,  # show_plots
-        False,  # livestream
+        True,  # livestream
         step_time = 1.0,
         stop_time = 1000.0,
         rI = rI,
