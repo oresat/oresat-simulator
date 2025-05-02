@@ -164,11 +164,12 @@ def run(show_plots, livestream, step_time, stop_time, rI, init_pos, init_vel, in
         vizard_cmd = vizard_app_path + ' -directComm ' + vizard_port
 
         viz_process = subprocess.Popen(vizard_cmd, shell=True)
-        vizSupport.enableUnityVisualization(scenarioSim, taskName, scObject,
+        viz = vizSupport.enableUnityVisualization(scenarioSim, taskName, scObject,
                                             saveFile=__file__,
                                             liveStream=livestream
                                             )
 
+        vizSupport.createCustomModel(viz, modelPath="/home/monitor/oresat-simulator/oresat-viz-models/OreSat-Simp-Model.obj", scale=[-10.0, 10.0, 10.0], rotation=[0, 0, 90])
 
         # simulate one step at a time
         started = False
