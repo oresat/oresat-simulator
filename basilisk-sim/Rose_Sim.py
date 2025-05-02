@@ -155,14 +155,35 @@ def run(show_plots, livestream, step_time, stop_time, rI, init_pos, init_vel, in
     #   Try and get Vizard to work
     if livestream:
         clockSync = simSynch.ClockSynch()
-        clockSync.accelFactor = (stop_time)
+        clockSync.accelFactor = (1)
         scenarioSim.AddModelToTask(taskName, clockSync)
+        vizard_app_path = "/home/monitor/Vizard_Linux/Vizard.x86_64"
+        vizard_bin_path = "/home/monitor/oresat-simulator/basilisk-sim/_VizFiles/Rose_Sim_UnityViz.bin"
+        vizard_port = "tcp://localhost:5556"
+        #vizard_cmd = [vizard_app_path, "-loadFile", vizard_bin_path]
+        vizard_cmd = vizard_app_path + ' -directComm ' + vizard_port
 
+        viz_process = subprocess.Popen(vizard_cmd, shell=True)
         vizSupport.enableUnityVisualization(scenarioSim, taskName, scObject,
                                             saveFile=__file__,
                                             liveStream=livestream
                                             )
-        return
+
+
+        # simulate one step at a time
+        started = False
+        progress_time = 0
+        while progress_time < stop_time:
+            if (started and not vizSupport.vizFound) or (viz_process.poll() is not None):
+                break
+
+            progress_time += 10**9
+            scenarioSim.ConfigureStopTime(progress_time)
+            scenarioSim.ExecuteSimulation()
+            print("progress time", progress_time)
+            started = True
+            time.sleep(1)
+        exit
 
     # SIMULATION
     # Need to call the self-init and cross-init methods

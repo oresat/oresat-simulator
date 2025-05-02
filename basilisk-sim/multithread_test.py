@@ -70,17 +70,25 @@ def all_data(init_barrier, shared_data, sim_params, shift_seconds=0):
 
 
 
+def run_vizard_livestream(init_barrier, shared_data, sim_params, shift_seconds=0):
 
-def run_vizard(init_barrier, shared_data, shift_seconds):
+
+    init_barrier.wait()
+    sim_params["livestream"] = True
+
+    run(**sim_params)
+
+
+def run_vizard_file(init_barrier, shared_data, shift_seconds):
 
 
     init_barrier.wait()
     
-    vizard_app_path = "/home/monitor/Vizard_Linux/Vizard.x86_64"
-    vizard_bin_path = "/home/monitor/oresat-simulator/basilisk-sim/_VizFiles/Rose_Sim_UnityViz.bin"
-    vizard_cmd = [vizard_app_path, "-loadFile", vizard_bin_path]
+#    vizard_app_path = "/home/monitor/Vizard_Linux/Vizard.x86_64"
+#    vizard_bin_path = "/home/monitor/oresat-simulator/basilisk-sim/_VizFiles/Rose_Sim_UnityViz.bin"
+#    vizard_cmd = [vizard_app_path, "-loadFile", vizard_bin_path]
 
-    subprocess.Popen(vizard_cmd)    
+#    subprocess.Popen(vizard_cmd)    
 
 
     while True:
@@ -108,7 +116,7 @@ def solar_data(init_barrier, shared_data, shift_seconds=0, intensity_cap=50):
     
     has_serial = False
     try:
-        ser = serial.Serial(port= '/dev/ttyACM0',baudrate = 115200)
+        ser = serial.Serial(port= '/dev/ttyACM0',baudrate = 115200, timeout=0.1)
         has_serial = True
         
         # send control c
@@ -125,7 +133,7 @@ def solar_data(init_barrier, shared_data, shift_seconds=0, intensity_cap=50):
         
         # Put into basilisk mode, uses \r for some reason
         ser.write('3\r'.encode())
-        
+
     except:
         print("Failed to connect to serial, will only print numbers to terminal.")
 
@@ -134,6 +142,9 @@ def solar_data(init_barrier, shared_data, shift_seconds=0, intensity_cap=50):
     header = shared_data["header"]
     print(shared_data["header"])
     time.sleep(1)
+
+    ser.reset_input_buffer()
+    ser.reset_output_buffer()
 
     try:
         while True:
@@ -159,21 +170,24 @@ def solar_data(init_barrier, shared_data, shift_seconds=0, intensity_cap=50):
             if has_serial:
                 ser.write((str(value_to_send) + "\r").encode("utf-8"))
 
+                ser.reset_input_buffer()
+                ser.reset_output_buffer()
 
-    except:
-        print("\n\nSUN: An error occured")
+               #for i in range(5):
+                #    s = ser.read_until()
+                #    if s != b'':
+                #        print("SOLAR_SIMULATOR: log message:", s.decode().strip())
+
+
+    except Exception as e:
+        print("\n\nSUN: An error occured:", e)
     finally:
         print("\n\nClosing the simulator")
         if has_serial:
-            ser.write("0\r".encode("utf-8"))
-            ser.write("0\n".encode("utf-8"))
-            ser.write("0\r".encode("utf-8"))
-            ser.write("0\n".encode("utf-8"))
+            for i in range(50):
+                ser.write("0\r".encode("utf-8"))
+                time.sleep(0.1)
             print("\n\nAttempted to turn off solar simulator")
-            ser.write("0\r".encode("utf-8"))
-            ser.write("0\n".encode("utf-8"))
-            ser.write("0\r".encode("utf-8"))
-            ser.write("0\n".encode("utf-8"))
             
             ser.close()
             print("\n\nClosed serial")
@@ -346,12 +360,12 @@ def check_in_range(sim_data, check_epoch):
 if __name__ == "__main__":
     with Manager() as manager:
         send_conn, recv_conn = Pipe()
-        init_barrier = Barrier(4)
+        init_barrier = Barrier(5)
 
         shared_data = manager.dict()
 
         sat_rotational_state = {"init_att": [[0.1], [0.2], [-0.3]],
-                                "init_ang_vel": [[0.05], [-0.1], [0.05]],
+                                "init_ang_vel": [[0.05], [-0.15], [0.05]],
                                 "rI": [16.50e7, 71145.23, 457069.94,
                                        71145.23, 15.96e7, 310717.76,
                                        457069.94, 310717.76, 65.18e6]
@@ -390,19 +404,22 @@ if __name__ == "__main__":
         
         # do it for the list
         sim_process = Process(target=all_data, args=(init_barrier, shared_data, sim_params, sim_shift_seconds))
-        viz_process = Process(target=run_vizard, args=(init_barrier, shared_data, sim_shift_seconds))
+        viz_process = Process(target=run_vizard_livestream, args=(init_barrier, shared_data, sim_params, sim_shift_seconds))
+        time_process = Process(target=run_vizard_file, args=(init_barrier, shared_data, sim_shift_seconds))
         sun_process = Process(target=solar_data, args=(init_barrier, shared_data, sim_shift_seconds))
         gs_process = Process(target=groundstation_data, args=(init_barrier, shared_data, sim_shift_seconds))
         # status_process = Process()
 
         sim_process.start()
         viz_process.start()
+        time_process.start()
         sun_process.start()
         gs_process.start()
         
         # wait
         #sim_process.join()
         # viz_process.join()
+        time_process.join()
         sun_process.join()
         gs_process.join()
         
