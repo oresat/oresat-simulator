@@ -11,6 +11,11 @@ Pyserial
 Start by installing Basilisk in a Python virtual environment.
 Installing basilisk is complicated. Follow the instructions on:
 https://hanspeterschaub.info/basilisk/Install/installOnLinux.html
+to build your environment for simulator
+
+For python environment setup:
+
+
 
 Note that Basilisk has several dependencies which need to be installed first.
 
