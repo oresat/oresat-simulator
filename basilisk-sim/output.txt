@@ -1,3 +1,0 @@
-Namespace(days=365.0, livestream=False, fast_forward=False)
-Setting simulation time for  31536000 seconds.
-Vizard livestream disabled
