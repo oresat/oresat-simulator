@@ -7,6 +7,8 @@ configured to send magnetometer data to the Helmholtz Cage.
 Python
 Basilisk
 Pyserial
+LibUSB
+PyUBS
 
 Start by installing Basilisk in a Python virtual environment.
 Installing basilisk is complicated. Follow the instructions on:
@@ -18,7 +20,7 @@ You will need to install pyserial within the virtual environment that you run Ba
 
 Install with: "pip install pyserial"
 
-If you cannot run this as root, you'll need to install it system-wide with your package manager. 
+If you cannot run this as root, you'll need to install it system-wide with your package manager.
 On Debian: "sudo apt install python3-pyserial"
 
 #Permissions
